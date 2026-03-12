@@ -30,7 +30,7 @@ async function notifyEmail(email: string, tag: string, apiKey: string) {
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      from: "Kael Solomon <noreply@kaelsolomon.com>",
+      from: "Kael Solomon <onboarding@resend.dev>",
       to: [notifyTo],
       subject: `New signup: ${email}`,
       html: `<p><strong>New subscriber</strong></p>
