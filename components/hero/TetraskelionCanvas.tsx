@@ -13,17 +13,17 @@ const BURST_AT_MS = BUILD_MS;
 const BASE_SPEED = 0.004;
 const PEAK_SPEED = 0.028;
 const SETTLE_SPEED = 0.003;
-const SELF_SPIN = 0.009;
+const SELF_SPIN = 0.028;
 
-// Sunburst color palette
+// Fire blue color palette
 const C = {
-  deepAmber: 0x7a1800,
-  amber: 0xc04010,
-  warmGold: 0xe87010,
-  brightGold: 0xffaa00,
-  paleGold: 0xffdd44,
-  solar: 0xfffaa0,
-  white: 0xffffff,
+  deepAmber: 0x000b44,
+  amber: 0x0a2e9e,
+  warmGold: 0x1e5cff,
+  brightGold: 0x4de8ff,
+  paleGold: 0x6eb4ff,
+  solar: 0x6eb4ff,
+  white: 0x9dc8ff,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ function lemPos(t: number): THREE.Vector3 {
 // ─────────────────────────────────────────────────────────────────────────────
 //  LEMNISCOID SURFACE GEOMETRY
 // ─────────────────────────────────────────────────────────────────────────────
-function buildLemniscoidGeo(tSegs = 160, phiSegs = 52): THREE.BufferGeometry {
+function buildLemniscoidGeo(tSegs = 40, phiSegs = 12): THREE.BufferGeometry {
   const verts: number[] = [];
   const idx: number[] = [];
   for (let i = 0; i <= tSegs; i++) {
@@ -107,6 +107,7 @@ export default function TetraskelionCanvas({
   onHeadlineReady,
 }: TetraskelionCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const onHeadlineReadyRef = useRef(onHeadlineReady);
   onHeadlineReadyRef.current = onHeadlineReady;
 
@@ -134,12 +135,12 @@ export default function TetraskelionCanvas({
     container.appendChild(renderer.domElement);
 
     // ── LIGHTING ────────────────────────────────────────────────────────────
-    const centerLight = new THREE.PointLight(0xffeedd, 3.0, 28, 1.5);
+    const centerLight = new THREE.PointLight(0x1e5cff, 1.8, 20, 2.0);
     scene.add(centerLight);
-    const rimLight = new THREE.DirectionalLight(0xccddff, 0.6);
+    const rimLight = new THREE.DirectionalLight(0xbbddff, 0.9);
     rimLight.position.set(-5, 8, -4);
     scene.add(rimLight);
-    const ambientLight = new THREE.AmbientLight(0x080502, 1.0);
+    const ambientLight = new THREE.AmbientLight(0x020408, 1.0);
     scene.add(ambientLight);
 
     // ── LEMNISCOID GEOMETRY (shared) ────────────────────────────────────────
@@ -151,33 +152,34 @@ export default function TetraskelionCanvas({
       rotZ = 0
     ): THREE.Group {
       const grp = new THREE.Group();
-      // Glass surface
+      // Glass surface — fire blue glass
       grp.add(
         new THREE.Mesh(
           lGeo,
           new THREE.MeshPhongMaterial({
-            color: 0x99bbdd,
-            emissive: 0x030204,
-            specular: 0xffffff,
-            shininess: 90,
+            color: 0x0a1eaa,
+            emissive: 0x071266,
+            specular: 0x4488ff,
+            shininess: 140,
             transparent: true,
-            opacity: 0.14,
+            opacity: 0.18,
             side: THREE.DoubleSide,
             depthWrite: false,
+            blending: THREE.NormalBlending,
           })
         )
       );
-      // Wireframe overlay
+      // Wireframe overlay — fire blue, NormalBlending
       grp.add(
         new THREE.Mesh(
           lGeo,
           new THREE.MeshBasicMaterial({
-            color: C.warmGold,
+            color: 0x1e5cff,
             wireframe: true,
             transparent: true,
-            opacity: 0.18,
+            opacity: 0.7,
             depthWrite: false,
-            blending: THREE.AdditiveBlending,
+            blending: THREE.NormalBlending,
           })
         )
       );
@@ -193,9 +195,9 @@ export default function TetraskelionCanvas({
     function makeElectronDot(): THREE.Group {
       const g = new THREE.Group();
       [
-        { r: 0.07, c: C.white, op: 1.0 },
-        { r: 0.14, c: C.solar, op: 0.7 },
-        { r: 0.26, c: C.paleGold, op: 0.3 },
+        { r: 0.07, c: 0x4488ff, op: 0.0 },
+        { r: 0.14, c: 0x4499ff, op: 0.0 },
+        { r: 0.26, c: 0x1e5cff, op: 0.0 },
       ].forEach(({ r, c, op }) =>
         g.add(
           new THREE.Mesh(
@@ -261,12 +263,12 @@ export default function TetraskelionCanvas({
     const centerGrp = new THREE.Group();
     const centerMats: THREE.MeshBasicMaterial[] = [];
     [
-      { r: 0.035, c: C.white, op: 1.0 },
-      { r: 0.09, c: C.solar, op: 0.8 },
-      { r: 0.2, c: C.paleGold, op: 0.5 },
-      { r: 0.4, c: C.warmGold, op: 0.25 },
-      { r: 0.8, c: C.amber, op: 0.1 },
-      { r: 1.6, c: C.deepAmber, op: 0.04 },
+      { r: 0.035, c: C.solar, op: 0.0 },
+      { r: 0.09, c: C.solar, op: 0.0 },
+      { r: 0.2, c: C.paleGold, op: 0.0 },
+      { r: 0.4, c: C.warmGold, op: 0.0 },
+      { r: 0.8, c: C.amber, op: 0.0 },
+      { r: 1.6, c: C.deepAmber, op: 0.0 },
     ].forEach(({ r, c, op }) => {
       const mat = new THREE.MeshBasicMaterial({
         color: c,
@@ -281,7 +283,7 @@ export default function TetraskelionCanvas({
 
     // Anticipation glow
     const anticipationMat = new THREE.MeshBasicMaterial({
-      color: C.white,
+      color: 0x4488ff,
       transparent: true,
       opacity: 0,
       depthWrite: false,
@@ -293,7 +295,7 @@ export default function TetraskelionCanvas({
 
     // ── BURST SYSTEM ────────────────────────────────────────────────────────
     const burstCoreMat = new THREE.MeshBasicMaterial({
-      color: C.white,
+      color: 0x4488ff,
       transparent: true,
       opacity: 0,
       depthWrite: false,
@@ -305,7 +307,7 @@ export default function TetraskelionCanvas({
     );
 
     const burstWaveMat = new THREE.MeshBasicMaterial({
-      color: C.warmGold,
+      color: 0x2266ff,
       transparent: true,
       opacity: 0,
       depthWrite: false,
@@ -331,7 +333,7 @@ export default function TetraskelionCanvas({
     );
 
     const bgFloodMat = new THREE.MeshBasicMaterial({
-      color: C.deepAmber,
+      color: 0x001166,
       transparent: true,
       opacity: 0,
       depthWrite: false,
@@ -389,10 +391,23 @@ export default function TetraskelionCanvas({
     };
     window.addEventListener("mousemove", handleMouseMove);
 
+    // ── VIDEO UNLOCK ON FIRST CLICK ─────────────────────────────────────────
+    let vidUnlocked = false;
+    let vidPending = false;
+    const handleClick = () => {
+      vidUnlocked = true;
+      if (vidPending && videoRef.current) {
+        vidPending = false;
+        videoRef.current.play();
+      }
+    };
+    window.addEventListener("click", handleClick);
+
     // ── ANIMATION STATE ─────────────────────────────────────────────────────
     const startTime = Date.now();
     let burstFired = false;
     let burstTime = 0;
+    let shakeActive = 0;
     let currentSpeed = BASE_SPEED;
     let masterRotY = 0;
     let sceneOpacity = 0;
@@ -400,7 +415,6 @@ export default function TetraskelionCanvas({
     let animFrameId = 0;
 
     const spinVec = new THREE.Vector3(1, 0, 0);
-    const centerBaseOpacities = [1.0, 0.8, 0.5, 0.25, 0.1, 0.04];
 
     // ── ANIMATE LOOP ────────────────────────────────────────────────────────
     function animate() {
@@ -448,74 +462,90 @@ export default function TetraskelionCanvas({
       // Center pulse
       const beat = (Math.sin(elapsedS * 4) + 1) / 2;
       centerGrp.scale.setScalar((1 + beat * 0.12) * sceneOpacity);
-      centerMats.forEach((mat, i) => {
-        mat.opacity = centerBaseOpacities[i] * sceneOpacity;
+      // All center disc halos killed
+      centerMats.forEach((mat) => {
+        mat.opacity = 0;
       });
 
-      // Anticipation glow (t=7-8s)
+      // Anticipation glow (t=7-8s) — disabled
       if (!burstFired && elapsed > 7000) {
-        const anticipateT = (elapsed - 7000) / 1000;
-        anticipationMat.opacity = clamp(anticipateT * 0.5, 0, 0.5);
+        anticipationMat.opacity = 0;
       }
 
       // Burst trigger
       if (!burstFired && elapsed >= BURST_AT_MS) {
         burstFired = true;
         burstTime = 0;
+        shakeActive = 0.38;
         anticipationMat.opacity = 0;
+
+        // Fire video overlay
+        const vid = videoRef.current;
+        if (vid) {
+          vid.currentTime = 0;
+          vid.style.opacity = "1";
+          const p = vid.play();
+          if (p) p.catch(() => { vidPending = true; });
+          vid.onended = () => { vid.style.opacity = "0"; };
+        }
       }
 
-      // Burst animation
+      // Burst animation — all Three.js effects killed, video handles it
       if (burstFired) {
         burstTime += 1 / 60;
 
-        // Stage 1: Core detonation
+        // Stage 1: Core detonation — disabled
         if (burstTime <= 0.7) {
           const t = burstTime / 0.7;
           burstCore.scale.setScalar(0.05 + easeOutCubic(t) * 3.45);
-          burstCoreMat.opacity = Math.max(0, 1.5 * (1 - t * t * t));
+          burstCoreMat.opacity = 0;
         } else {
           burstCoreMat.opacity = 0;
         }
 
-        // Stage 2: Primary shockwave
+        // Stage 2: Primary shockwave — disabled
         if (burstTime <= 4.0) {
           const t = burstTime / 4.0;
           const radius = 0.1 + easeOutQuart(t) * 22;
           burstWave.scale.setScalar(radius);
-          const peak = Math.min(burstTime / 0.3, 1);
-          const decay = Math.max(
-            0,
-            1 - easeOutCubic(Math.max(0, burstTime - 0.3) / 3.7)
-          );
-          burstWaveMat.opacity = peak * decay * 0.75;
+          burstWaveMat.opacity = 0;
         } else {
           burstWaveMat.opacity = 0;
         }
 
-        // Stage 3: Outer ambient cloud
+        // Stage 3: Outer ambient cloud — disabled
         if (burstTime <= 5.5) {
           const t = burstTime / 5.5;
           burstAmbient.scale.setScalar(0.5 + easeOutCubic(t) * 30);
-          burstAmbientMat.opacity = Math.max(
-            0,
-            0.3 * (1 - easeOutCubic(t))
-          );
+          burstAmbientMat.opacity = 0;
         } else {
           burstAmbientMat.opacity = 0;
         }
 
-        // Background warm flood
-        if (burstTime < 5.0) {
-          const peak = Math.min(burstTime / 0.4, 1);
-          const decay = Math.max(
-            0,
-            1 - easeOutCubic(Math.max(0, burstTime - 0.4) / 4.6)
-          );
-          bgFloodMat.opacity = peak * decay * 0.35;
-        } else {
-          bgFloodMat.opacity = 0;
+        // Background warm flood — disabled
+        bgFloodMat.opacity = 0;
+
+        // Light spike — subtle pulse, not flash
+        if (burstTime < 0.12) {
+          centerLight.intensity = 2.5;
+          centerLight.color.setHex(0x1e5cff);
+        } else if (burstTime < 3.0) {
+          const flashDecay = clamp(burstTime / 0.25, 0, 1);
+          centerLight.intensity = flashDecay < 1
+            ? lerp(2.5, 1.8, easeOutCubic(flashDecay))
+            : lerp(1.8, 1.8, easeOutCubic(clamp((burstTime - 0.25) / 4.0, 0, 1)));
         }
+      }
+
+      // Camera shake
+      if (shakeActive > 0) {
+        shakeActive -= 1 / 60;
+        const intensity = (shakeActive / 0.38) * 0.22;
+        camera.position.x = 4.5 + (Math.random() - 0.5) * 2 * intensity;
+        camera.position.y = 3.2 + (Math.random() - 0.5) * 2 * intensity;
+      } else if (burstFired && shakeActive <= 0) {
+        camera.position.x = 4.5;
+        camera.position.y = 3.2;
       }
 
       // Scene fade-in for lemniscoid materials
@@ -528,15 +558,15 @@ export default function TetraskelionCanvas({
             opacity: number;
           };
           if (mat.wireframe) {
-            mat.opacity = 0.18 * sceneOpacity;
+            mat.opacity = 0.32 * sceneOpacity;
           } else {
-            mat.opacity = 0.14 * sceneOpacity;
+            mat.opacity = 0.12 * sceneOpacity;
           }
         })
       );
 
       // Fade tubes
-      [L1tube, L2tube, L3tube].forEach((t) => {
+      [L1tube, L2tube].forEach((t) => {
         const mat = t.material as THREE.MeshBasicMaterial;
         if (mat) mat.opacity = 0.85 * sceneOpacity;
       });
@@ -578,6 +608,7 @@ export default function TetraskelionCanvas({
       cancelAnimationFrame(animFrameId);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("click", handleClick);
 
       // Dispose ALL geometries and materials in the scene
       scene.traverse((obj: THREE.Object3D) => {
@@ -606,15 +637,37 @@ export default function TetraskelionCanvas({
   }, [setup]);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        width: "100%",
-        height: "100%",
-        position: "absolute",
-        top: 0,
-        left: 0,
-      }}
-    />
+    <>
+      <div
+        ref={containerRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      />
+      <video
+        ref={videoRef}
+        src="/explosion.mp4"
+        preload="auto"
+        playsInline
+        muted
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          height: "140%",
+          minWidth: "140%",
+          mixBlendMode: "screen",
+          pointerEvents: "none",
+          opacity: 0,
+          transition: "opacity 0.15s",
+          zIndex: 2,
+        }}
+      />
+    </>
   );
 }
