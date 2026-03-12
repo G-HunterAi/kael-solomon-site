@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── EDITORIAL SECTIONS (below fold, /about, /books, /music, /framework, /lab) ── */
+  --color-bg: #FAFAF8;
+  --color-bg-subtle: #F2F1EE;
+  --color-text-primary: #1A1A18;
+  --color-text-muted: #6B6B65;
+  --color-text-faint: #6F6C66;
+  --color-border: #E5E4DF;
+  --color-accent: #1A1A18;
+  --color-link: #1A1A18;
+  --color-link-hover: #6B6B65;
+  --color-error: #C0392B;
+
+  /* ── HERO SECTION (full viewport, Tetraskelion) ── */
+  --color-hero-bg: #000000;
+  --color-hero-text: #FAFAF8;
+  --color-hero-muted: #8A8A84;
+  --color-hero-label: #C9A84C;
+
+  /* ── UNIVERSE PAGES (fully dark — immersive world experience) ── */
+  --color-logos-accent: #2D4A7A;
+  --color-logos-bg: #040810;
+  --color-logos-highlight: #5A82C0;
+
+  --color-resonance-accent: #4A2D6B;
+  --color-resonance-bg: #060408;
+  --color-resonance-highlight: #9466CC;
+
+  /* Font variables are set by next/font via className on <html>.
+     Tailwind theme references them for utility class generation. */
+}
+
+html {
+  color-scheme: light only;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.7;
+}
+
+/* Focus-visible global default */
+*:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
+/* Skip nav styles */
+.skip-nav {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.skip-nav:focus {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: auto;
+  height: auto;
+  padding: 12px 24px;
+  background: var(--color-text-primary);
+  color: var(--color-bg);
+  font-size: 14px;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  z-index: 100;
+  border-radius: 2px;
+}
+
+/* Arrow link hover */
+.arrow-link .arrow {
+  display: inline-block;
+  transition: transform 150ms ease;
+}
+
+.arrow-link:hover .arrow {
+  transform: translateX(4px);
+}
+
+/* Mobile nav overlay slide-in */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

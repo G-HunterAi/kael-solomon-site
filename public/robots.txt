@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://kaelsolomon.com
+
+# Sitemaps
+Sitemap: https://kaelsolomon.com/sitemap.xml
