@@ -1,5 +1,45 @@
 import { NextResponse } from "next/server";
 
+const SOURCE_LABELS: Record<string, string> = {
+  "ks-map":      "Map of Me",
+  "ks-connect":  "Connect (homepage)",
+  "ks-diagnose": "Diagnose page",
+};
+
+async function notifyDiscord(email: string, tag: string) {
+  const webhookUrl = process.env.DISCORD_NOTIFY_WEBHOOK;
+  if (!webhookUrl) return;
+  const source = SOURCE_LABELS[tag] ?? tag ?? "Unknown";
+  await fetch(webhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      content: `📬 **New signup** — \`${email}\`\n📍 Source: **${source}**`,
+    }),
+  }).catch(() => {});
+}
+
+async function notifyEmail(email: string, tag: string, apiKey: string) {
+  const notifyTo = process.env.NOTIFY_EMAIL;
+  if (!notifyTo) return;
+  const source = SOURCE_LABELS[tag] ?? tag ?? "Unknown";
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      from: "Kael Solomon <noreply@kaelsolomon.com>",
+      to: [notifyTo],
+      subject: `New signup: ${email}`,
+      html: `<p><strong>New subscriber</strong></p>
+             <p>Email: <code>${email}</code></p>
+             <p>Source: ${source}</p>`,
+    }),
+  }).catch(() => {});
+}
+
 export async function POST(request: Request) {
   try {
     const { email, tag } = await request.json();
@@ -11,7 +51,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Server-side email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -22,7 +61,6 @@ export async function POST(request: Request) {
 
     const API_KEY = process.env.RESEND_API_KEY;
     if (!API_KEY) {
-      console.error("RESEND_API_KEY environment variable not configured");
       return NextResponse.json(
         { success: false, error: "Email service is not configured." },
         { status: 500 }
@@ -31,14 +69,13 @@ export async function POST(request: Request) {
 
     const AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
     if (!AUDIENCE_ID) {
-      console.error("RESEND_AUDIENCE_ID environment variable not configured");
       return NextResponse.json(
         { success: false, error: "Email service is not configured." },
         { status: 500 }
       );
     }
 
-    // Resend Contacts API — add contact to audience
+    // Add to Resend audience
     const res = await fetch(
       `https://api.resend.com/audiences/${AUDIENCE_ID}/contacts`,
       {
@@ -50,13 +87,17 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           email,
           unsubscribed: false,
-          // Tag identifies source: "ks-connect" (site), "ks-diagnose" (RDTE gate)
           ...(tag ? { first_name: tag } : {}),
         }),
       }
     );
 
     if (res.ok) {
+      // Fire notifications in background — don't block response
+      Promise.all([
+        notifyDiscord(email, tag),
+        notifyEmail(email, tag, API_KEY),
+      ]);
       return NextResponse.json({ success: true });
     }
 
