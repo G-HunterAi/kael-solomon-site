@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myOS Diagnostic Suite - Career & Life Assessment Platform</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; overflow-x: hidden; }
+        .container { width: 100%; min-height: 100vh; background: #0f172a; }
+        .page { position: absolute; width: 100%; min-height: 100vh; opacity: 0; transform: translateX(100px); transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: none; }
+        .page.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+        .page.exit-left { opacity: 0; transform: translateX(-100px); }
+        .home-header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 2rem 1rem; border-bottom: 2px solid #6366f1; text-align: center; }
+        .home-header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; color: #06b6d4; }
+        .home-header p { color: #94a3b8; margin-bottom: 0.5rem; }
+        .history-badge { display: inline-block; background: #6366f1; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; margin-top: 0.5rem; }
+        .categories-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; padding: 2rem; max-width: 1400px; margin: 0 auto; }
+        .category { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease; }
+        .category:hover { background: #334155; border-color: #6366f1; transform: translateY(-4px); }
+        .category-title { font-size: 1.3rem; margin-bottom: 1rem; color: #6366f1; }
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; }
+        .tool-card { background: #0f172a; border: 2px solid #334155; border-radius: 8px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+        .tool-card:hover { border-color: #6366f1; background: #1e293b; transform: scale(1.05); }
+        .tool-icon { font-size: 2rem; }
+        .tool-name { font-size: 0.9rem; color: #94a3b8; line-height: 1.2; }
+        .tool-time { font-size: 0.75rem; color: #64748b; }
+        .tool-header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 1.5rem 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #6366f1; gap: 1rem; }
+        .back-btn { background: #334155; color: #e2e8f0; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
+        .back-btn:hover { background: #475569; }
+        .tool-title { flex: 1; font-size: 1.5rem; color: #06b6d4; }
+        .progress-container { padding: 1rem; background: #1e293b; }
+        .progress-bar { width: 100%; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #06b6d4); transition: width 0.3s ease; }
+        .progress-text { font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem; text-align: center; }
+        .form-container { padding: 2rem 1rem; max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 2rem; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .form-label { display: block; margin-bottom: 0.75rem; color: #cbd5e1; font-weight: 500; }
+        .form-description { display: block; margin-bottom: 1rem; color: #94a3b8; font-size: 0.9rem; font-style: italic; }
+        input[type="text"], input[type="number"], input[type="range"], textarea, select { width: 100%; padding: 0.75rem; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 1rem; font-family: inherit; transition: all 0.3s ease; }
+        input[type="range"] { padding: 0.5rem; cursor: pointer; accent-color: #6366f1; }
+        input:focus, textarea:focus, select:focus { border-color: #6366f1; background: #334155; outline: none; }
+        textarea { resize: vertical; min-height: 100px; }
+        .slider-value { display: inline-block; background: #6366f1; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.9rem; margin-left: 0.5rem; min-width: 40px; text-align: center; }
+        .button-group { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap; }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; font-weight: 500; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #818cf8; transform: translateY(-2px); }
+        .btn-secondary { background: #334155; color: #e2e8f0; }
+        .btn-secondary:hover { background: #475569; }
+        .btn-small { padding: 0.5rem 1rem; font-size: 0.9rem; }
+        .btn-add { background: #06b6d4; color: #0f172a; margin-top: 0.5rem; }
+        .btn-add:hover { background: #22d3ee; }
+        .results-header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 2rem 1rem; text-align: center; border-bottom: 2px solid #6366f1; }
+        .results-header h2 { font-size: 1.8rem; color: #06b6d4; margin-bottom: 0.5rem; }
+        .results-content { padding: 2rem 1rem; max-width: 1000px; margin: 0 auto; }
+        .score-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; animation: slideInUp 0.5s ease; }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .score-label { font-size: 1.1rem; color: #cbd5e1; font-weight: 500; }
+        .score-value { font-size: 2rem; font-weight: bold; color: #06b6d4; min-width: 80px; text-align: right; animation: countUp 0.6s ease; }
+        @keyframes countUp { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .color-green { color: #10b981; }
+        .color-yellow { color: #f59e0b; }
+        .color-red { color: #ef4444; }
+        .chart-container { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 2rem 1rem; margin-bottom: 2rem; position: relative; height: 400px; animation: slideInUp 0.5s ease 0.2s both; }
+        .export-btn { background: #10b981; color: white; margin: 2rem auto; display: block; }
+        .export-btn:hover { background: #34d399; }
+        .toast { position: fixed; bottom: 2rem; right: 2rem; background: #10b981; color: white; padding: 1rem 1.5rem; border-radius: 6px; animation: slideInRight 0.3s ease; z-index: 1000; }
+        @keyframes slideInRight { from { transform: translateX(400px); } to { transform: translateX(0); } }
+        .card-sort-container { display: grid; grid-template-columns: 1fr; gap: 2rem; padding: 2rem 1rem; max-width: 900px; margin: 0 auto; }
+        .card-current { background: #1e293b; border: 2px solid #6366f1; border-radius: 12px; padding: 3rem 2rem; text-align: center; margin-bottom: 2rem; animation: popIn 0.3s ease; }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .card-current h3 { font-size: 1.3rem; color: #cbd5e1; margin-bottom: 1.5rem; font-weight: 400; }
+        .card-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; }
+        .action-btn { padding: 1rem; border: 2px solid #334155; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; font-weight: 500; }
+        .action-btn-energize { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981; }
+        .action-btn-energize:hover { background: #10b981; color: #0f172a; transform: scale(1.05); }
+        .action-btn-neutral { background: rgba(107, 114, 128, 0.2); border-color: #6b7280; color: #9ca3af; }
+        .action-btn-neutral:hover { background: #6b7280; color: #f3f4f6; transform: scale(1.05); }
+        .action-btn-drain { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444; }
+        .action-btn-drain:hover { background: #ef4444; color: #0f172a; transform: scale(1.05); }
+        .card-counter { color: #94a3b8; font-size: 0.9rem; margin-top: 1.5rem; }
+        .option-group { display: grid; gap: 0.75rem; }
+        .option-btn { background: #1e293b; border: 2px solid #334155; border-radius: 8px; padding: 1rem; text-align: left; cursor: pointer; transition: all 0.3s ease; color: #cbd5e1; }
+        .option-btn:hover { border-color: #6366f1; background: #334155; }
+        .option-btn.selected { background: #6366f1; border-color: #6366f1; color: white; }
+        .phase-title { font-size: 1.2rem; color: #06b6d4; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+        .phase-num { background: #6366f1; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .history-sidebar { position: fixed; right: 0; top: 0; width: 350px; height: 100vh; background: #1e293b; border-left: 2px solid #6366f1; overflow-y: auto; transform: translateX(400px); transition: transform 0.3s ease; z-index: 500; display: flex; flex-direction: column; }
+        .history-sidebar.open { transform: translateX(0); }
+        .history-header { background: #0f172a; padding: 1.5rem; border-bottom: 2px solid #6366f1; display: flex; justify-content: space-between; align-items: center; }
+        .history-header h3 { color: #06b6d4; font-size: 1.2rem; }
+        .close-history { background: #334155; border: none; color: #e2e8f0; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+        .history-list { flex: 1; overflow-y: auto; padding: 1rem; }
+        .history-item { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 1rem; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.3s ease; }
+        .history-item:hover { border-color: #6366f1; background: #334155; }
+        .history-item-name { color: #06b6d4; font-weight: 500; font-size: 0.95rem; }
+        .history-item-time { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .history-item-score { color: #94a3b8; font-size: 0.85rem; margin-top: 0.5rem; }
+        .clear-history-btn { background: #ef4444; color: white; border: none; padding: 0.75rem; margin: 1rem; border-radius: 6px; cursor: pointer; width: calc(100% - 2rem); }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 400; }
+        .overlay.open { opacity: 1; pointer-events: auto; }
+        .warning-card { background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; color: #fca5a5; }
+        .ok-card { background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; color: #86efac; }
+        .family-card { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 2px solid #6366f1; border-radius: 12px; padding: 2rem; text-align: center; margin-bottom: 1.5rem; animation: slideInUp 0.5s ease; }
+        .family-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+        .family-name { font-size: 1.5rem; color: #06b6d4; margin-bottom: 0.5rem; }
+        .family-score { font-size: 2.5rem; font-weight: bold; color: #10b981; margin-bottom: 1rem; }
+        .family-description { color: #cbd5e1; line-height: 1.6; }
+        .family-bars { display: grid; gap: 0.75rem; margin-top: 1.5rem; }
+        .family-bar { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #0f172a; border-radius: 6px; }
+        .family-bar-label { color: #94a3b8; font-size: 0.9rem; flex: 0 0 100px; }
+        .family-bar-container { flex: 1; height: 8px; background: #334155; border-radius: 4px; margin: 0 1rem; overflow: hidden; }
+        .family-bar-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #06b6d4); transition: width 0.6s ease; }
+        .family-bar-value { color: #06b6d4; font-size: 0.9rem; font-weight: 500; flex: 0 0 50px; text-align: right; }
+        .big-stat { background: #1e293b; border: 2px solid #6366f1; border-radius: 8px; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem; }
+        .big-stat-value { font-size: 2.5rem; color: #10b981; font-weight: bold; }
+        .big-stat-label { color: #94a3b8; margin-top: 0.5rem; }
+        .bar-chart-container { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 2rem 1rem; margin-bottom: 2rem; }
+        .bar-row { display: grid; grid-template-columns: 100px 1fr 60px; gap: 1rem; align-items: center; margin-bottom: 1.5rem; }
+        .bar-label { color: #cbd5e1; font-size: 0.95rem; font-weight: 500; }
+        .bar-background { height: 24px; background: #334155; border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #06b6d4); transition: width 0.6s ease; }
+        .bar-value { color: #06b6d4; font-weight: 600; text-align: right; }
+        .aspiration-item { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; }
+        .aspiration-text { word-break: break-word; color: #cbd5e1; }
+        .aspiration-remove { background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
+        .aspiration-remove:hover { background: #dc2626; }
+        .gap-item { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+        .gap-description { font-weight: 500; color: #cbd5e1; margin-bottom: 0.75rem; }
+        .gap-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .gap-stat { display: flex; justify-content: space-between; color: #94a3b8; }
+        .gap-delta { font-size: 1.1rem; font-weight: bold; color: #06b6d4; }
+        .quadrant-container { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 2rem; margin-bottom: 2rem; }
+        .quadrant-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .quadrant { background: #0f172a; border: 2px solid #334155; border-radius: 8px; padding: 1.5rem; text-align: center; min-height: 150px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .quadrant h3 { font-size: 1.1rem; color: #06b6d4; margin-bottom: 0.75rem; }
+        .quadrant p { color: #94a3b8; font-size: 0.9rem; }
+        .state-card { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 2px solid #6366f1; border-radius: 12px; padding: 2rem; text-align: center; margin-bottom: 2rem; animation: slideInUp 0.5s ease; }
+        .state-color { width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 1rem; }
+        .state-name { font-size: 1.8rem; color: #06b6d4; margin-bottom: 0.75rem; font-weight: 600; }
+        .state-confidence { font-size: 1.3rem; color: #10b981; margin-bottom: 1rem; }
+        .state-reasoning { color: #cbd5e1; line-height: 1.6; }
+        .temp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .temp-category { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; }
+        .temp-category-title { color: #06b6d4; font-weight: 600; margin-bottom: 1rem; }
+        .temp-sub { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #334155; font-size: 0.9rem; color: #cbd5e1; }
+        .temp-sub:last-child { border-bottom: none; }
+        .temp-value { color: #06b6d4; font-weight: 600; }
+        .audit-result { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        .audit-aspiration { color: #cbd5e1; font-weight: 500; margin-bottom: 0.75rem; }
+        .audit-details { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem; }
+        .audit-detail { display: flex; gap: 0.5rem; color: #94a3b8; }
+        .audit-detail-icon { flex-shrink: 0; }
+        .diagnosis-text { background: #0f172a; border-left: 4px solid #6366f1; padding: 1rem; border-radius: 4px; color: #cbd5e1; line-height: 1.6; margin-bottom: 2rem; }
+        /* Peer Mirror & HRV Styles */
+        .family-button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .family-select-btn { padding: 1rem; border: 2px solid #334155; border-radius: 8px; background: #1e293b; color: #cbd5e1; cursor: pointer; transition: all 0.3s ease; text-align: center; font-size: 1rem; }
+        .family-select-btn:hover { border-color: #6366f1; background: #334155; }
+        .family-select-btn.selected { background: #6366f1; border-color: #6366f1; color: white; }
+        .dimension-inputs { display: grid; gap: 1.5rem; margin-bottom: 2rem; }
+        .slider-row { display: grid; grid-template-columns: 120px 1fr 50px; gap: 1rem; align-items: center; }
+        .slider-label { color: #cbd5e1; font-weight: 500; font-size: 0.95rem; }
+        .dimension-slider { width: 100%; }
+        .age-button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .age-select-btn { padding: 0.75rem; border: 2px solid #334155; border-radius: 8px; background: #1e293b; color: #cbd5e1; cursor: pointer; transition: all 0.3s ease; text-align: center; }
+        .age-select-btn:hover { border-color: #6366f1; background: #334155; }
+        .age-select-btn.selected { background: #6366f1; border-color: #6366f1; color: white; }
+        .cohort-stat { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        .cohort-stat-title { color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .cohort-stat-value { font-size: 1.5rem; color: #10b981; font-weight: bold; }
+        .cohort-interpretation { color: #cbd5e1; margin-top: 0.75rem; font-size: 0.9rem; line-height: 1.5; }
+        .stacked-bar { height: 30px; border-radius: 4px; display: flex; overflow: hidden; margin-bottom: 1rem; }
+        .bar-segment { display: flex; align-items: center; justify-content: center; color: white; font-weight: 500; font-size: 0.85rem; transition: all 0.3s ease; }
+        .hrv-composite-score { background: #1e293b; border: 3px solid #6366f1; border-radius: 12px; padding: 2rem; text-align: center; margin-bottom: 2rem; }
+        .hrv-score-big { font-size: 3.5rem; font-weight: bold; margin-bottom: 0.5rem; }
+        .hrv-score-label { color: #94a3b8; font-size: 1.1rem; margin-bottom: 1rem; }
+        .hrv-component-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .hrv-component { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; text-align: center; }
+        .hrv-component-label { color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .hrv-component-value { font-size: 2rem; font-weight: bold; margin-bottom: 0.5rem; }
+        .hrv-component-pct { color: #06b6d4; font-size: 0.85rem; }
+        .hrv-weight-display { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; color: #cbd5e1; text-align: center; font-size: 0.9rem; }
+        .hipaa-note { background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 6px; padding: 0.75rem; margin-bottom: 1.5rem; color: #86efac; font-size: 0.85rem; }
+        .confidence-meter { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        .confidence-label { color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .confidence-bar-bg { height: 20px; background: #334155; border-radius: 4px; overflow: hidden; }
+        .confidence-bar-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #06b6d4); transition: width 0.3s ease; }
+        @media (max-width: 768px) {
+            .categories-grid { grid-template-columns: 1fr; padding: 1rem; gap: 1.5rem; }
+            .tool-header { flex-direction: column; text-align: center; }
+            .tool-title { font-size: 1.2rem; }
+            .form-container { padding: 1rem; }
+            .history-sidebar { width: 100%; }
+            .home-header h1 { font-size: 1.8rem; }
+            .results-content { padding: 1rem; }
+            .bar-row { grid-template-columns: 80px 1fr 50px; }
+            .quadrant-grid { grid-template-columns: 1fr; }
+            .family-button-grid { grid-template-columns: 1fr; }
+            .age-button-grid { grid-template-columns: 1fr; }
+            .hrv-component-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HOME PAGE -->
+        <div class="page active" id="home-page">
+            <div class="home-header">
+                <h1>🎯 myOS Diagnostic Suite</h1>
+                <p>Career & Life Assessment Platform</p>
+                <button class="btn btn-secondary btn-small" onclick="toggleHistory()">
+                    View History <span class="history-badge" id="history-count" style="display:none;">0</span>
+                </button>
+            </div>
+            <div class="categories-grid">
+                <div class="category">
+                    <div class="category-title">Core Assessments</div>
+                    <div class="tools-grid">
+                        <div class="tool-card" onclick="startTool('baseline')"><div class="tool-icon">🧬</div><div class="tool-name">Baseline<br>Assessment</div><div class="tool-time">5 min</div></div>
+                        <div class="tool-card" onclick="startTool('daily')"><div class="tool-icon">📋</div><div class="tool-name">Daily<br>Check-in</div><div class="tool-time">3 min</div></div>
+                        <div class="tool-card" onclick="startTool('quick')"><div class="tool-icon">⚡</div><div class="tool-name">Quick<br>Check-in</div><div class="tool-time">1 min</div></div>
+                    </div>
+                </div>
+                <div class="category">
+                    <div class="category-title">Signal Suite</div>
+                    <div class="tools-grid">
+                        <div class="tool-card" onclick="startTool('energy')"><div class="tool-icon">⚡</div><div class="tool-name">Energy<br>Assessment</div><div class="tool-time">2-8 min</div></div>
+                        <div class="tool-card" onclick="startTool('aspiration')"><div class="tool-icon">📝</div><div class="tool-name">Aspiration<br>Audit</div><div class="tool-time">5 min</div></div>
+                        <div class="tool-card" onclick="startTool('temperature')"><div class="tool-icon">🌡️</div><div class="tool-name">Temperature<br>Check</div><div class="tool-time">2 min</div></div>
+                    </div>
+                </div>
+                <div class="category">
+                    <div class="category-title">Career Insights</div>
+                    <div class="tools-grid">
+                        <div class="tool-card" onclick="startTool('family')"><div class="tool-icon">🎯</div><div class="tool-name">Career Family<br>Assessment</div><div class="tool-time">10 min</div></div>
+                        <div class="tool-card" onclick="startTool('flux')"><div class="tool-icon">🌀</div><div class="tool-name">Flux State<br>Assessment</div><div class="tool-time">2 min</div></div>
+                        <div class="tool-card" onclick="startTool('gap')"><div class="tool-icon">📊</div><div class="tool-name">Gap<br>Analysis</div><div class="tool-time">5 min</div></div>
+                    </div>
+                </div>
+                <div class="category">
+                    <div class="category-title">Decision Making</div>
+                    <div class="tools-grid">
+                        <div class="tool-card" onclick="startTool('decision')"><div class="tool-icon">🧠</div><div class="tool-name">Decision<br>Capture</div><div class="tool-time">3 min</div></div>
+                    </div>
+                </div>
+                <div class="category">
+                    <div class="category-title">Wellbeing & Health</div>
+                    <div class="tools-grid">
+                        <div class="tool-card" onclick="startTool('peermirror')"><div class="tool-icon">🔗</div><div class="tool-name">Peer<br>Mirror</div><div class="tool-time">5 min</div></div>
+                        <div class="tool-card" onclick="startTool('hrv')"><div class="tool-icon">❤️</div><div class="tool-name">HRV<br>Pipeline</div><div class="tool-time">3 min</div></div>
+                    </div>
+                </div>
+                <div class="category" style="border-color: #10b981;">
+                    <div class="category-title" style="color: #10b981;">Youth Tools (Ages 14-24)</div>
+                    <div class="tools-grid">
+                        <div class="tool-card" onclick="startTool('youthEnergy')"><div class="tool-icon">🌱</div><div class="tool-name">Youth Energy<br>Assessment</div><div class="tool-time">8 min</div></div>
+                        <div class="tool-card" onclick="startTool('youthFsi')"><div class="tool-icon">🧭</div><div class="tool-name">Youth Flux State<br>Assessment</div><div class="tool-time">5 min</div></div>
+                        <div class="tool-card" onclick="startTool('youthCareer')"><div class="tool-icon">🎓</div><div class="tool-name">Youth Career Family<br>Assessment</div><div class="tool-time">5 min</div></div>
+                    </div>
+                </div>
+                <div class="category" style="border-color: #f59e0b;">
+                    <div class="category-title" style="color: #f59e0b;">Domain Router</div>
+                    <div class="tools-grid">
+                        <div class="tool-card" onclick="startTool('domainRouter')"><div class="tool-icon">🔀</div><div class="tool-name">Decision<br>Domain Router</div><div class="tool-time">3 min</div></div>
+                        <div class="tool-card" onclick="startTool('domainOutput')"><div class="tool-icon">📋</div><div class="tool-name">Domain<br>Output Viewer</div><div class="tool-time">2 min</div></div>
+                        <div class="tool-card" onclick="startTool('toolSequence')"><div class="tool-icon">📊</div><div class="tool-name">Tool<br>Sequencer</div><div class="tool-time">1 min</div></div>
+                    </div>
+                </div>
+                <div class="category" style="border-color: #8b5cf6;">
+                    <div class="category-title" style="color: #8b5cf6;">RDTE Assessment</div>
+                    <div class="tools-grid">
+                        <div class="tool-card" onclick="startTool('rdteAdaptive')"><div class="tool-icon">🧬</div><div class="tool-name">Adaptive RDTE<br>Assessment</div><div class="tool-time">10-15 min</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOOL PAGES -->
+        <div class="page" id="baseline-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">🧬 Baseline Assessment</div></div><div class="progress-container"><div class="progress-bar"><div class="progress-fill" id="baseline-progress"></div></div><div class="progress-text" id="baseline-progress-text">Step 1 of 8</div></div><div class="form-container"><div id="baseline-content"></div></div></div>
+        <div class="page" id="daily-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">📋 Daily Check-in</div></div><div class="progress-container"><div class="progress-bar"><div class="progress-fill" id="daily-progress"></div></div><div class="progress-text" id="daily-progress-text">Step 1 of 8</div></div><div class="form-container"><div id="daily-content"></div></div></div>
+        <div class="page" id="quick-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">⚡ Quick Check-in</div></div><div class="progress-container"><div class="progress-bar"><div class="progress-fill" id="quick-progress"></div></div><div class="progress-text" id="quick-progress-text">Step 1 of 3</div></div><div class="form-container"><div id="quick-content"></div></div></div>
+        <div class="page" id="signal-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">⚡ Energy Assessment</div></div><div class="progress-container"><div class="progress-bar"><div class="progress-fill" id="signal-progress"></div></div><div class="progress-text" id="signal-progress-text">Activity 1 of 21</div></div><div class="card-sort-container" id="signal-content"></div></div>
+        <div class="page" id="aspiration-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">📝 Aspiration Audit</div></div><div class="form-container"><div id="aspiration-content"></div></div></div>
+        <div class="page" id="family-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">🎯 Career Family Assessment</div></div><div class="progress-container"><div class="progress-bar"><div class="progress-fill" id="family-progress"></div></div><div class="progress-text" id="family-progress-text">Step 1 of 28</div></div><div class="form-container"><div id="family-content"></div></div></div>
+        <div class="page" id="flux-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">🌀 Flux State Assessment</div></div><div class="form-container"><div id="flux-content"></div></div></div>
+        <div class="page" id="decision-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">🧠 Decision Capture</div></div><div class="form-container"><div id="decision-content"></div></div></div>
+        <div class="page" id="temperature-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">🌡️ Temperature Check</div></div><div class="form-container"><div id="temperature-content"></div></div></div>
+        <div class="page" id="energy-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">⚡ Energy Assessment — Quick Mode</div></div><div class="form-container"><div id="energy-content"></div></div></div>
+        <div class="page" id="gap-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">📊 Gap Analysis</div></div><div class="progress-container"><div class="progress-bar"><div class="progress-fill" id="gap-progress"></div></div><div class="progress-text" id="gap-progress-text">Step 1 of 2</div></div><div class="form-container"><div id="gap-content"></div></div></div>
+        <div class="page" id="peermirror-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">🔗 Peer Mirror</div></div><div class="progress-container"><div class="progress-bar"><div class="progress-fill" id="peermirror-progress"></div></div><div class="progress-text" id="peermirror-progress-text">Step 1 of 4</div></div><div class="form-container"><div id="peermirror-content"></div></div></div>
+        <div class="page" id="hrv-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">❤️ HRV Pipeline</div></div><div class="form-container"><div id="hrv-content"></div></div></div>
+        <!-- YOUTH + DOMAIN + RDTE TOOL PAGES -->
+        <div class="page" id="youthEnergy-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">🌱 Youth Energy Assessment</div></div><div class="progress-container"><div class="progress-bar"><div class="progress-fill" id="youthEnergy-progress"></div></div><div class="progress-text" id="youthEnergy-progress-text">Activity 1 of 33</div></div><div class="card-sort-container" id="youthEnergy-content"></div></div>
+        <div class="page" id="youthFsi-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">🧭 Youth Flux State Assessment</div></div><div class="progress-container"><div class="progress-bar"><div class="progress-fill" id="youthFsi-progress"></div></div><div class="progress-text" id="youthFsi-progress-text">Question 1 of 25</div></div><div class="form-container"><div id="youthFsi-content"></div></div></div>
+        <div class="page" id="youthCareer-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">🎓 Youth Career Family Assessment</div></div><div class="form-container"><div id="youthCareer-content"></div></div></div>
+        <div class="page" id="domainRouter-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">🔀 Decision Domain Router</div></div><div class="form-container"><div id="domainRouter-content"></div></div></div>
+        <div class="page" id="domainOutput-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">📋 Domain Output Viewer</div></div><div class="form-container"><div id="domainOutput-content"></div></div></div>
+        <div class="page" id="toolSequence-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">📊 Tool Sequencer</div></div><div class="form-container"><div id="toolSequence-content"></div></div></div>
+        <div class="page" id="rdteAdaptive-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title">🧬 Adaptive RDTE Assessment</div></div><div class="progress-container"><div class="progress-bar"><div class="progress-fill" id="rdteAdaptive-progress"></div></div><div class="progress-text" id="rdteAdaptive-progress-text">Step 1</div></div><div class="form-container"><div id="rdteAdaptive-content"></div></div></div>
+        <div class="page" id="results-page"><div class="tool-header"><button class="back-btn" onclick="goHome()">← Back</button><div class="tool-title" id="results-title"></div></div><div class="results-content" id="results-content"></div></div>
+    </div>
+
+    <!-- HISTORY SIDEBAR -->
+    <div class="overlay" id="overlay" onclick="closeHistory()"></div>
+    <div class="history-sidebar" id="history-sidebar">
+        <div class="history-header"><h3>Results History</h3><button class="close-history" onclick="closeHistory()">×</button></div>
+        <div class="history-list" id="history-list"></div>
+        <button class="clear-history-btn" onclick="clearHistory()">Clear History</button>
+    </div>
+
+    <script>
+        const careerFamilies = {
+            'builder': { name: 'Builder', icon: '🔨', color: '#f59e0b', weights: { N1: 0.6, N2: 0.7, N3: 0.8, N4: 0.7, N5: 0.3, N6: 0.9, N7: 0.4 } },
+            'strategist': { name: 'Strategist', icon: '♟', color: '#8b5cf6', weights: { N1: 0.5, N2: 0.9, N3: 0.6, N4: 0.8, N5: 0.4, N6: 0.5, N7: 0.9 } },
+            'explorer': { name: 'Explorer', icon: '🧭', color: '#ec4899', weights: { N1: 0.7, N2: 0.6, N3: 0.4, N4: 0.7, N5: 0.6, N6: 0.6, N7: 0.8 } },
+            'optimizer': { name: 'Optimizer', icon: '⚙', color: '#06b6d4', weights: { N1: 0.4, N2: 0.8, N3: 0.9, N4: 0.9, N5: 0.3, N6: 0.7, N7: 0.6 } },
+            'teacher': { name: 'Teacher', icon: '📖', color: '#10b981', weights: { N1: 0.9, N2: 0.5, N3: 0.7, N4: 0.6, N5: 0.9, N6: 0.4, N7: 0.5 } },
+            'connector': { name: 'Connector', icon: '🔗', color: '#f97316', weights: { N1: 0.95, N2: 0.4, N3: 0.5, N4: 0.5, N5: 0.9, N6: 0.5, N7: 0.3 } },
+            'guardian': { name: 'Guardian', icon: '🛡', color: '#6366f1', weights: { N1: 0.8, N2: 0.7, N3: 0.8, N4: 0.6, N5: 0.8, N6: 0.3, N7: 0.7 } },
+            'healer': { name: 'Healer', icon: '💚', color: '#ef4444', weights: { N1: 0.95, N2: 0.4, N3: 0.6, N4: 0.5, N5: 1.0, N6: 0.2, N7: 0.4 } }
+        };
+
+        let history = JSON.parse(localStorage.getItem('toolHistory') || '[]');
+        let currentTool = null;
+        let currentStep = 0;
+        let toolData = {};
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => {
+                p.classList.remove('active', 'exit-left');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+        function goHome() {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('exit-left'));
+            setTimeout(() => { document.querySelectorAll('.page').forEach(p => p.classList.remove('exit-left')); showPage('home-page'); }, 100);
+        }
+        function toggleHistory() {
+            const sidebar = document.getElementById('history-sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+            if (sidebar.classList.contains('open')) renderHistory();
+        }
+        function closeHistory() {
+            document.getElementById('history-sidebar').classList.remove('open');
+            document.getElementById('overlay').classList.remove('open');
+        }
+        function addToHistory(name, data) {
+            history.push({ name, data, timestamp: new Date().toLocaleString() });
+            localStorage.setItem('toolHistory', JSON.stringify(history));
+            updateHistoryCount();
+        }
+        function updateHistoryCount() {
+            const badge = document.getElementById('history-count');
+            if (history.length > 0) { badge.textContent = history.length; badge.style.display = 'inline-block'; }
+        }
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = history.map((item, i) => `<div class="history-item" onclick="viewHistoryItem(${i})"><div class="history-item-name">${item.name}</div><div class="history-item-time">${item.timestamp}</div></div>`).join('');
+        }
+        function clearHistory() {
+            if (confirm('Clear all history?')) { history = []; localStorage.setItem('toolHistory', JSON.stringify(history)); updateHistoryCount(); renderHistory(); }
+        }
+
+        function startTool(t) {
+            currentTool = t;
+            currentStep = 0;
+            toolData = {};
+            switch(t) {
+                case 'baseline': initBaseline(); break;
+                case 'daily': initDaily(); break;
+                case 'quick': initQuick(); break;
+                case 'signal': initSignal(); break;
+                case 'aspiration': initAspiration(); break;
+                case 'family': initFamily(); break;
+                case 'flux': initFlux(); break;
+                case 'decision': initDecision(); break;
+                case 'temperature': initTemperature(); break;
+                case 'energy': initEnergy(); break;
+                case 'gap': initGap(); break;
+                case 'peermirror': initPeerMirror(); break;
+                case 'hrv': initHRV(); break;
+                case 'youthEnergy': initYouthEnergy(); break;
+                case 'youthFsi': initYouthFsi(); break;
+                case 'youthCareer': initYouthCareer(); break;
+                case 'domainRouter': initDomainRouter(); break;
+                case 'domainOutput': initDomainOutput(); break;
+                case 'toolSequence': initToolSequence(); break;
+                case 'rdteAdaptive': initRdteAdaptive(); break;
+            }
+        }
+
+        function initBaseline() { showPage('baseline-page'); }
+        function initDaily() { showPage('daily-page'); }
+        function initQuick() { showPage('quick-page'); }
+        function initSignal() { showPage('signal-page'); }
+        function initAspiration() { showPage('aspiration-page'); }
+        function initFamily() { showPage('family-page'); }
+        function initFlux() { showPage('flux-page'); }
+        function initDecision() { showPage('decision-page'); }
+        function initTemperature() { showPage('temperature-page'); }
+        function initEnergy() { showPage('energy-page'); }
+        function initGap() { showPage('gap-page'); }
+
+        // ============ PEER MIRROR IMPLEMENTATION ============
+        function initPeerMirror() {
+            showPage('peermirror-page');
+            currentStep = 0;
+            toolData = { step: 'selectPrimary', primaryFamily: null, secondaryFamily: null, dimensions: {}, ageGroup: null };
+            renderPeerMirrorStep();
+        }
+
+        function renderPeerMirrorStep() {
+            const content = document.getElementById('peermirror-content');
+            const progressFill = document.getElementById('peermirror-progress');
+            const progressText = document.getElementById('peermirror-progress-text');
+
+            switch(toolData.step) {
+                case 'selectPrimary':
+                    currentStep = 1;
+                    progressFill.style.width = '25%';
+                    progressText.textContent = 'Step 1 of 4: Select Primary Career Family';
+                    content.innerHTML = `
+                        <div class="form-group">
+                            <div class="form-label">Which Career Family resonates most with you?</div>
+                            <div class="family-button-grid">
+                                ${Object.entries(careerFamilies).map(([k, v]) => `
+                                    <button class="family-select-btn" onclick="selectPrimaryFamily('${k}')" style="border-color: ${v.color};">
+                                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">${v.icon}</div>
+                                        <div>${v.name}</div>
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'selectSecondary':
+                    currentStep = 2;
+                    progressFill.style.width = '50%';
+                    progressText.textContent = 'Step 2 of 4: Select Secondary Career Family';
+                    const primary = careerFamilies[toolData.primaryFamily];
+                    content.innerHTML = `
+                        <div class="form-group">
+                            <div class="form-label">Selected Primary: ${primary.icon} ${primary.name}</div>
+                            <div class="form-label" style="margin-top: 1.5rem;">Which is your secondary family?</div>
+                            <div class="family-button-grid">
+                                ${Object.entries(careerFamilies).filter(([k]) => k !== toolData.primaryFamily).map(([k, v]) => `
+                                    <button class="family-select-btn" onclick="selectSecondaryFamily('${k}')" style="border-color: ${v.color};">
+                                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">${v.icon}</div>
+                                        <div>${v.name}</div>
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'rateDimensions':
+                    currentStep = 3;
+                    progressFill.style.width = '75%';
+                    progressText.textContent = 'Step 3 of 4: Rate Energy Dimensions';
+                    const dims = ['N1 People', 'N2 Problem', 'N3 Completion', 'N4 Mastery', 'N5 Helping', 'N6 Building', 'N7 Complexity'];
+                    content.innerHTML = `
+                        <div class="form-group">
+                            <div class="form-label">Rate each energy dimension (1-10):</div>
+                            <div class="dimension-inputs">
+                                ${dims.map((d, i) => {
+                                    const key = `N${i+1}`;
+                                    const val = toolData.dimensions[key] || 5;
+                                    return `
+                                        <div class="slider-row">
+                                            <span class="slider-label">${d}</span>
+                                            <input type="range" min="1" max="10" value="${val}" onchange="updateDimension('${key}', this.value)" class="dimension-slider">
+                                            <span class="slider-value">${val}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            <button class="btn btn-primary" onclick="toolData.step='selectAge'; renderPeerMirrorStep();">Next: Select Age Group</button>
+                        </div>
+                    `;
+                    break;
+                case 'selectAge':
+                    currentStep = 4;
+                    progressFill.style.width = '100%';
+                    progressText.textContent = 'Step 4 of 4: Select Age Group';
+                    const ages = ['14-16', '17-18', '19-21', '22-25'];
+                    content.innerHTML = `
+                        <div class="form-group">
+                            <div class="form-label">Which age group do you belong to?</div>
+                            <div class="age-button-grid">
+                                ${ages.map(age => `
+                                    <button class="age-select-btn" onclick="submitPeerMirror('${age}')">${age}</button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+        }
+
+        function selectPrimaryFamily(fam) {
+            toolData.primaryFamily = fam;
+            toolData.step = 'selectSecondary';
+            renderPeerMirrorStep();
+        }
+
+        function selectSecondaryFamily(fam) {
+            toolData.secondaryFamily = fam;
+            toolData.step = 'rateDimensions';
+            renderPeerMirrorStep();
+        }
+
+        function updateDimension(key, value) {
+            toolData.dimensions[key] = parseInt(value);
+        }
+
+        function submitPeerMirror(age) {
+            toolData.ageGroup = age;
+            initializeCohort();
+            showPeerMirrorResults();
+        }
+
+        function initializeCohort() {
+            if (!localStorage.getItem('peerMirrorCohort')) {
+                const cohort = [];
+                for (let i = 0; i < 20; i++) {
+                    const families = Object.keys(careerFamilies);
+                    const cohortProfile = {
+                        primaryFamily: families[Math.floor(Math.random() * families.length)],
+                        secondaryFamily: families[Math.floor(Math.random() * families.length)],
+                        dimensions: {},
+                        ageGroup: ['14-16', '17-18', '19-21', '22-25'][Math.floor(Math.random() * 4)]
+                    };
+                    for (let j = 1; j <= 7; j++) {
+                        cohortProfile.dimensions[`N${j}`] = Math.floor(Math.random() * 10) + 1;
+                    }
+                    cohort.push(cohortProfile);
+                }
+                localStorage.setItem('peerMirrorCohort', JSON.stringify(cohort));
+            }
+        }
+
+        function showPeerMirrorResults() {
+            const cohort = JSON.parse(localStorage.getItem('peerMirrorCohort'));
+            const samePrimary = cohort.filter(p => p.primaryFamily === toolData.primaryFamily).length;
+            const sameBlend = cohort.filter(p => p.primaryFamily === toolData.primaryFamily && p.secondaryFamily === toolData.secondaryFamily).length;
+            const pct = Math.round((samePrimary / cohort.length) * 100);
+
+            let message = '';
+            if (pct >= 30) message = "You're not unusual — you're part of a real group.";
+            else if (pct >= 15) message = "Not the majority — but a real population.";
+            else message = "That might feel isolating. But rarity in signal doesn't mean wrongness.";
+
+            let results = `
+                <div class="results-header">
+                    <h2>Your Peer Mirror Results</h2>
+                </div>
+                <div class="results-content">
+                    <div class="big-stat">
+                        <div class="big-stat-value">${pct}%</div>
+                        <div class="big-stat-label">share your primary family</div>
+                    </div>
+                    <div class="cohort-stat">
+                        <div class="cohort-stat-title">Exact Blend Match</div>
+                        <div class="cohort-stat-value">${sameBlend} people</div>
+                    </div>
+                    <div class="cohort-interpretation">${message}</div>
+                    <div class="form-group" style="margin-top: 2rem;">
+                        <div class="form-label" style="font-size: 1.1rem; color: #06b6d4;">Family Distribution in Your Cohort</div>
+                        <div class="bar-chart-container">
+                            ${Object.keys(careerFamilies).map(fam => {
+                                const count = cohort.filter(p => p.primaryFamily === fam).length;
+                                const pctDist = Math.round((count / cohort.length) * 100);
+                                return `
+                                    <div class="bar-row">
+                                        <div class="bar-label">${careerFamilies[fam].icon}</div>
+                                        <div class="bar-background">
+                                            <div class="bar-fill" style="width: ${pctDist}%;"></div>
+                                        </div>
+                                        <div class="bar-value">${count}</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 2rem;">
+                        <div class="form-label" style="font-size: 1.1rem; color: #06b6d4;">Energy Dimensions: You vs Group Average</div>
+                        <div class="bar-chart-container">
+                            ${['N1 People', 'N2 Problem', 'N3 Completion', 'N4 Mastery', 'N5 Helping', 'N6 Building', 'N7 Complexity'].map((label, i) => {
+                                const key = `N${i+1}`;
+                                const userVal = toolData.dimensions[key] || 5;
+                                const groupAvg = Math.round(cohort.reduce((sum, p) => sum + p.dimensions[key], 0) / cohort.length);
+                                const maxVal = 10;
+                                return `
+                                    <div style="margin-bottom: 1.5rem;">
+                                        <div style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 0.5rem;">${label}</div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                            <div>
+                                                <div style="color: #94a3b8; font-size: 0.8rem;">Your Rating</div>
+                                                <div class="bar-background">
+                                                    <div class="bar-fill" style="width: ${(userVal/maxVal)*100}%;"></div>
+                                                </div>
+                                                <div style="color: #06b6d4; font-size: 0.9rem; margin-top: 0.25rem;">${userVal}</div>
+                                            </div>
+                                            <div>
+                                                <div style="color: #94a3b8; font-size: 0.8rem;">Group Average</div>
+                                                <div class="bar-background">
+                                                    <div class="bar-fill" style="width: ${(groupAvg/maxVal)*100}%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
+                                                </div>
+                                                <div style="color: #10b981; font-size: 0.9rem; margin-top: 0.25rem;">${groupAvg}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="goHome()">Back to Home</button>
+                    </div>
+                </div>
+            `;
+
+            showPage('results-page');
+            document.getElementById('results-title').textContent = '🔗 Peer Mirror Results';
+            document.getElementById('results-content').innerHTML = results;
+            addToHistory('Peer Mirror', toolData);
+        }
+
+        // ============ HRV PIPELINE IMPLEMENTATION ============
+        function initHRV() {
+            showPage('hrv-page');
+            toolData = {
+                hrv: 60, rhr: 72, sleepDuration: 7.5, deepSleep: 18, rem: 22, steps: 8000, calories: 300
+            };
+            renderHRVCalculator();
+        }
+
+        function renderHRVCalculator() {
+            const content = document.getElementById('hrv-content');
+            const { hrv, rhr, sleepDuration, deepSleep, rem, steps, calories } = toolData;
+
+            content.innerHTML = `
+                <div class="form-group">
+                    <div class="form-label">HRV (SDNN ms): ${hrv}</div>
+                    <input type="range" min="5" max="200" value="${hrv}" onchange="updateHRVValue('hrv', this.value)" class="dimension-slider">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Resting Heart Rate (BPM): ${rhr}</div>
+                    <input type="range" min="35" max="110" value="${rhr}" onchange="updateHRVValue('rhr', this.value)" class="dimension-slider">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Sleep Duration (hours): ${sleepDuration.toFixed(1)}</div>
+                    <input type="range" min="3" max="12" step="0.5" value="${sleepDuration}" onchange="updateHRVValue('sleepDuration', this.value)" class="dimension-slider">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Deep Sleep %: ${deepSleep}</div>
+                    <input type="range" min="0" max="40" value="${deepSleep}" onchange="updateHRVValue('deepSleep', this.value)" class="dimension-slider">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">REM %: ${rem}</div>
+                    <input type="range" min="0" max="40" value="${rem}" onchange="updateHRVValue('rem', this.value)" class="dimension-slider">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Steps: ${steps}</div>
+                    <input type="range" min="0" max="25000" value="${steps}" onchange="updateHRVValue('steps', this.value)" class="dimension-slider">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Active Calories (kcal): ${calories}</div>
+                    <input type="range" min="0" max="1000" value="${calories}" onchange="updateHRVValue('calories', this.value)" class="dimension-slider">
+                </div>
+            `;
+
+            displayHRVResults();
+        }
+
+        function updateHRVValue(key, value) {
+            toolData[key] = isNaN(parseFloat(value)) ? parseInt(value) : parseFloat(value);
+            renderHRVCalculator();
+        }
+
+        function displayHRVResults() {
+            const content = document.getElementById('hrv-content');
+            const { hrv, rhr, sleepDuration, deepSleep, rem, steps, calories } = toolData;
+
+            const normalizeHRV = (sdnn) => Math.round(100 / (1 + Math.exp(-0.05 * (Math.max(5, Math.min(200, sdnn)) - 60))));
+            const normalizeRHR = (bpm) => Math.round(100 / (1 + Math.exp(0.08 * (Math.max(35, Math.min(110, bpm)) - 68))));
+
+            const hrvNorm = normalizeHRV(hrv);
+            const rhrNorm = normalizeRHR(rhr);
+            const recovery = Math.round(hrvNorm * 0.65 + rhrNorm * 0.35);
+
+            const duration_score = Math.min(40, Math.round((sleepDuration / 8) * 40));
+            const deep_score = Math.min(30, Math.round((deepSleep / 30) * 30));
+            const rem_score = Math.min(20, Math.round((rem / 25) * 20));
+            const efficiency = 10;
+            const sleepScore = duration_score + deep_score + rem_score + efficiency;
+
+            const stepsContribution = Math.min(50, Math.round((steps / 10000) * 35));
+            const caloriesContribution = Math.min(50, Math.round((calories / 500) * 35));
+            const activityScore = Math.min(100, stepsContribution + caloriesContribution);
+
+            const composite = Math.round(recovery * 0.40 + sleepScore * 0.35 + activityScore * 0.25);
+
+            let color = '#ef4444';
+            if (composite >= 80) color = '#10b981';
+            else if (composite >= 60) color = '#22d3ee';
+            else if (composite >= 30) color = '#f59e0b';
+
+            const resultsDiv = document.createElement('div');
+            resultsDiv.className = 'hrv-results';
+            resultsDiv.innerHTML = `
+                <div class="hrv-composite-score" style="border-color: ${color};">
+                    <div class="hrv-score-big" style="color: ${color};">${composite}</div>
+                    <div class="hrv-score-label">Physiological Balance Score</div>
+                </div>
+                <div class="hrv-component-grid">
+                    <div class="hrv-component">
+                        <div class="hrv-component-label">Recovery</div>
+                        <div class="hrv-component-value" style="color: ${recovery >= 70 ? '#10b981' : recovery >= 50 ? '#f59e0b' : '#ef4444'};">${recovery}</div>
+                        <div class="hrv-component-pct">40% weight</div>
+                    </div>
+                    <div class="hrv-component">
+                        <div class="hrv-component-label">Sleep</div>
+                        <div class="hrv-component-value" style="color: ${sleepScore >= 70 ? '#10b981' : sleepScore >= 50 ? '#f59e0b' : '#ef4444'};">${sleepScore}</div>
+                        <div class="hrv-component-pct">35% weight</div>
+                    </div>
+                    <div class="hrv-component">
+                        <div class="hrv-component-label">Activity</div>
+                        <div class="hrv-component-value" style="color: ${activityScore >= 70 ? '#10b981' : activityScore >= 50 ? '#f59e0b' : '#ef4444'};">${activityScore}</div>
+                        <div class="hrv-component-pct">25% weight</div>
+                    </div>
+                </div>
+                <div class="hrv-weight-display">Recovery 40% + Sleep 35% + Activity 25%</div>
+                <div class="confidence-meter">
+                    <div class="confidence-label">All Components Present - 100% Confidence</div>
+                    <div class="confidence-bar-bg">
+                        <div class="confidence-bar-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="hipaa-note">🔒 Raw HRV data is never stored. Only this composite score persists in your history.</div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="submitHRVResults()">Save Results</button>
+                    <button class="btn btn-secondary" onclick="goHome()">Back</button>
+                </div>
+            `;
+
+            const existing = content.querySelector('.hrv-results');
+            if (existing) existing.remove();
+            content.appendChild(resultsDiv);
+        }
+
+        function submitHRVResults() {
+            const { hrv, rhr, sleepDuration, deepSleep, rem, steps, calories } = toolData;
+            const normalizeHRV = (sdnn) => Math.round(100 / (1 + Math.exp(-0.05 * (Math.max(5, Math.min(200, sdnn)) - 60))));
+            const normalizeRHR = (bpm) => Math.round(100 / (1 + Math.exp(0.08 * (Math.max(35, Math.min(110, bpm)) - 68))));
+            const hrvNorm = normalizeHRV(hrv);
+            const rhrNorm = normalizeRHR(rhr);
+            const recovery = Math.round(hrvNorm * 0.65 + rhrNorm * 0.35);
+            const duration_score = Math.min(40, Math.round((sleepDuration / 8) * 40));
+            const deep_score = Math.min(30, Math.round((deepSleep / 30) * 30));
+            const rem_score = Math.min(20, Math.round((rem / 25) * 20));
+            const sleepScore = duration_score + deep_score + rem_score + 10;
+            const stepsContribution = Math.min(50, Math.round((steps / 10000) * 35));
+            const caloriesContribution = Math.min(50, Math.round((calories / 500) * 35));
+            const activityScore = Math.min(100, stepsContribution + caloriesContribution);
+            const composite = Math.round(recovery * 0.40 + sleepScore * 0.35 + activityScore * 0.25);
+
+            addToHistory('HRV Pipeline', { score: composite, recovery, sleepScore, activityScore });
+            goHome();
+        }
+
+        // ============ YOUTH ENERGY SORT (33 activities) ============
+        const youthActivities = [
+            { id: 1, text: 'Working on a group project', dims: { N1: 2, N6: 1 } },
+            { id: 2, text: 'Solving a tricky math problem', dims: { N2: 2, N7: 1 } },
+            { id: 3, text: 'Finishing a big homework assignment', dims: { N3: 2 } },
+            { id: 4, text: 'Practicing a skill until you nail it', dims: { N4: 2, N3: 1 } },
+            { id: 5, text: 'Helping a friend study', dims: { N5: 2, N1: 1 } },
+            { id: 6, text: 'Building something from scratch (code, art, craft)', dims: { N6: 2, N4: 1 } },
+            { id: 7, text: 'Figuring out a complex puzzle or game', dims: { N7: 2, N2: 1 } },
+            { id: 8, text: 'Leading a club or team meeting', dims: { N1: 2, N3: 1 } },
+            { id: 9, text: 'Researching something you\'re curious about', dims: { N2: 2, N4: 1 } },
+            { id: 10, text: 'Making a checklist and crossing things off', dims: { N3: 2, N6: 1 } },
+            { id: 11, text: 'Learning a new instrument or sport technique', dims: { N4: 2, N7: 1 } },
+            { id: 12, text: 'Tutoring or mentoring younger students', dims: { N5: 2, N1: 1 } },
+            { id: 13, text: 'Designing a website, poster, or app mockup', dims: { N6: 2, N2: 1 } },
+            { id: 14, text: 'Debating ideas with friends', dims: { N7: 1, N1: 2 } },
+            { id: 15, text: 'Organizing a school event or fundraiser', dims: { N1: 1, N3: 2 } },
+            { id: 16, text: 'Taking apart something to see how it works', dims: { N2: 1, N6: 2 } },
+            { id: 17, text: 'Planning your week or daily schedule', dims: { N3: 1, N7: 1 } },
+            { id: 18, text: 'Deep-diving into a hobby for hours', dims: { N4: 2, N6: 1 } },
+            { id: 19, text: 'Volunteering or community service', dims: { N5: 2 } },
+            { id: 20, text: 'Making a video, song, or creative project', dims: { N6: 2, N1: 1 } },
+            { id: 21, text: 'Thinking about "what if" scenarios', dims: { N7: 2 } },
+            { id: 22, text: 'Presenting in front of the class', dims: { N1: 2, N4: 1 } },
+            { id: 23, text: 'Writing an essay or journal entry', dims: { N2: 1, N5: 1 } },
+            { id: 24, text: 'Cleaning and organizing your space', dims: { N3: 2 } },
+            { id: 25, text: 'Competing in a contest or tournament', dims: { N4: 2, N2: 1 } },
+            { id: 26, text: 'Listening to a friend\'s problems', dims: { N5: 2, N1: 1 } },
+            { id: 27, text: 'Starting a small business or side project', dims: { N6: 2, N3: 1 } },
+            { id: 28, text: 'Analyzing stats (sports, games, data)', dims: { N7: 2, N2: 1 } },
+            { id: 29, text: 'Working in a team on something creative', dims: { N1: 1, N6: 1, N5: 1 } },
+            { id: 30, text: 'Fixing something that\'s broken', dims: { N2: 1, N6: 1, N3: 1 } },
+            { id: 31, text: 'Setting a goal and tracking progress', dims: { N3: 1, N4: 1 } },
+            { id: 32, text: 'Learning a new language or coding language', dims: { N4: 1, N7: 1 } },
+            { id: 33, text: 'Standing up for someone being treated unfairly', dims: { N5: 2, N1: 1 } },
+        ];
+
+        function initYouthEnergy() {
+            showPage('youthEnergy-page');
+            currentStep = 0;
+            toolData = { responses: {}, currentIndex: 0 };
+            renderYouthEnergyCard();
+        }
+
+        function renderYouthEnergyCard() {
+            const content = document.getElementById('youthEnergy-content');
+            const progress = document.getElementById('youthEnergy-progress');
+            const progressText = document.getElementById('youthEnergy-progress-text');
+            const idx = toolData.currentIndex;
+
+            if (idx >= youthActivities.length) {
+                showYouthEnergyResults();
+                return;
+            }
+
+            const act = youthActivities[idx];
+            const pct = Math.round(((idx + 1) / youthActivities.length) * 100);
+            progress.style.width = pct + '%';
+            progressText.textContent = `Activity ${idx + 1} of ${youthActivities.length}`;
+
+            content.innerHTML = `
+                <div style="padding: 2rem; text-align: center;">
+                    <div style="font-size: 1.3rem; color: #e2e8f0; margin-bottom: 2rem; min-height: 60px;">${act.text}</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; max-width: 500px; margin: 0 auto;">
+                        <button class="btn" style="background: #10b981; padding: 1.5rem;" onclick="youthEnergyRespond(${act.id}, 'energize')">⚡ Energizes Me</button>
+                        <button class="btn" style="background: #64748b; padding: 1.5rem;" onclick="youthEnergyRespond(${act.id}, 'neutral')">😐 Neutral</button>
+                        <button class="btn" style="background: #ef4444; padding: 1.5rem;" onclick="youthEnergyRespond(${act.id}, 'drain')">😩 Drains Me</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function youthEnergyRespond(actId, response) {
+            toolData.responses[actId] = response;
+            toolData.currentIndex++;
+            renderYouthEnergyCard();
+        }
+
+        function showYouthEnergyResults() {
+            const scores = { N1: 0, N2: 0, N3: 0, N4: 0, N5: 0, N6: 0, N7: 0 };
+            const counts = { N1: 0, N2: 0, N3: 0, N4: 0, N5: 0, N6: 0, N7: 0 };
+
+            youthActivities.forEach(act => {
+                const resp = toolData.responses[act.id];
+                const val = resp === 'energize' ? 1 : resp === 'drain' ? -1 : 0;
+                Object.entries(act.dims).forEach(([dim, weight]) => {
+                    scores[dim] += val * weight;
+                    counts[dim] += weight;
+                });
+            });
+
+            const normalized = {};
+            const dimNames = { N1: 'People', N2: 'Problems', N3: 'Completion', N4: 'Mastery', N5: 'Helping', N6: 'Building', N7: 'Complexity' };
+            Object.keys(scores).forEach(d => {
+                normalized[d] = counts[d] > 0 ? Math.round(((scores[d] / counts[d]) + 1) * 50) : 50;
+            });
+
+            const sorted = Object.entries(normalized).sort((a, b) => b[1] - a[1]);
+            const top3 = sorted.slice(0, 3);
+            const low2 = sorted.slice(-2);
+
+            const content = document.getElementById('youthEnergy-content');
+            content.innerHTML = `
+                <div style="padding: 1.5rem;">
+                    <h2 style="color: #10b981; text-align: center; margin-bottom: 1.5rem;">Your Energy Profile</h2>
+                    <div class="bar-chart-container">
+                        ${sorted.map(([dim, score]) => `
+                            <div class="bar-row">
+                                <div class="bar-label">${dimNames[dim]}</div>
+                                <div class="bar-background"><div class="bar-fill" style="width: ${score}%; background: ${score >= 70 ? 'linear-gradient(90deg, #10b981, #06b6d4)' : score >= 40 ? 'linear-gradient(90deg, #6366f1, #06b6d4)' : 'linear-gradient(90deg, #ef4444, #f59e0b)'}"></div></div>
+                                <div class="bar-value">${score}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="ok-card">
+                        <strong>What energizes you most:</strong> ${top3.map(([d]) => dimNames[d]).join(', ')}
+                    </div>
+                    <div class="warning-card">
+                        <strong>Lower energy areas:</strong> ${low2.map(([d]) => dimNames[d]).join(', ')} — not bad, just not your fuel
+                    </div>
+                    <div class="button-group" style="margin-top: 1.5rem;">
+                        <button class="btn btn-primary" onclick="submitYouthEnergy(${JSON.stringify(normalized).replace(/"/g, '&quot;')})">Save Results</button>
+                        <button class="btn btn-secondary" onclick="goHome()">Back</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function submitYouthEnergy(scores) {
+            addToHistory('Youth Energy Assessment', scores);
+            goHome();
+        }
+
+        // ============ YOUTH FLUX STATE INVENTORY (25 questions) ============
+        const youthFsiQuestions = [
+            { q: 'I\'m trying out different things to figure out what I like', state: 'exploring' },
+            { q: 'I feel energized when I discover something new about myself', state: 'exploring' },
+            { q: 'I keep changing my mind about what I want to do', state: 'exploring' },
+            { q: 'I actively seek new experiences and opportunities', state: 'exploring' },
+            { q: 'I enjoy not having everything figured out yet', state: 'exploring' },
+            { q: 'I feel bored most of the time and nothing interests me much', state: 'drifting' },
+            { q: 'I go through the motions without really caring about outcomes', state: 'drifting' },
+            { q: 'I don\'t feel strongly pulled toward any particular path', state: 'drifting' },
+            { q: 'I avoid thinking about my future because it stresses me out', state: 'drifting' },
+            { q: 'I feel disconnected from what I\'m doing day to day', state: 'drifting' },
+            { q: 'I feel like everyone expects me to know what I want already', state: 'pressured' },
+            { q: 'I worry about choosing the wrong path and wasting time', state: 'pressured' },
+            { q: 'I compare myself to peers who seem to have it figured out', state: 'pressured' },
+            { q: 'External deadlines about my future make me anxious', state: 'pressured' },
+            { q: 'I feel rushed to make decisions I\'m not ready for', state: 'pressured' },
+            { q: 'I know what I want to pursue and I\'m working toward it', state: 'committed' },
+            { q: 'I feel confident about the direction I\'m headed', state: 'committed' },
+            { q: 'My daily activities align with my long-term goals', state: 'committed' },
+            { q: 'I can describe my path clearly to others', state: 'committed' },
+            { q: 'I feel motivated and purposeful most days', state: 'committed' },
+            { q: 'I\'m on a path that doesn\'t match who I really am', state: 'mismatched' },
+            { q: 'What I\'m good at and what I enjoy feel like different things', state: 'mismatched' },
+            { q: 'I chose my current direction to please someone else', state: 'mismatched' },
+            { q: 'I succeed at things that don\'t actually excite me', state: 'mismatched' },
+            { q: 'There\'s a gap between how others see me and how I see myself', state: 'mismatched' },
+        ];
+
+        const youthFluxStates = {
+            exploring: { name: 'Exploring', color: '#10b981', icon: '🧭', desc: 'You\'re actively trying things out and building self-knowledge. This is healthy and productive — keep experimenting!' },
+            drifting: { name: 'Drifting', color: '#64748b', icon: '🌊', desc: 'You\'re going through the motions without strong direction. Try small experiments to reconnect with what energizes you.' },
+            pressured: { name: 'Pressured', color: '#f59e0b', icon: '⏰', desc: 'External expectations are weighing on you. Take a breath — your timeline is your own, and you don\'t need all the answers now.' },
+            committed: { name: 'Committed', color: '#6366f1', icon: '🎯', desc: 'You have a clear direction and you\'re moving toward it. Awesome! Stay open to refining your path as you grow.' },
+            mismatched: { name: 'Mismatched', color: '#ef4444', icon: '🔄', desc: 'Your current path doesn\'t match your true energy. It takes courage to recognize this — now explore what actually fits.' },
+        };
+
+        function initYouthFsi() {
+            showPage('youthFsi-page');
+            currentStep = 0;
+            toolData = { answers: [], currentIndex: 0 };
+            renderYouthFsiQuestion();
+        }
+
+        function renderYouthFsiQuestion() {
+            const content = document.getElementById('youthFsi-content');
+            const progress = document.getElementById('youthFsi-progress');
+            const progressText = document.getElementById('youthFsi-progress-text');
+            const idx = toolData.currentIndex;
+
+            if (idx >= youthFsiQuestions.length) {
+                showYouthFsiResults();
+                return;
+            }
+
+            const q = youthFsiQuestions[idx];
+            const pct = Math.round(((idx + 1) / youthFsiQuestions.length) * 100);
+            progress.style.width = pct + '%';
+            progressText.textContent = `Question ${idx + 1} of ${youthFsiQuestions.length}`;
+
+            content.innerHTML = `
+                <div class="form-group">
+                    <div class="form-label" style="font-size: 1.1rem; margin-bottom: 1.5rem;">${q.q}</div>
+                    <div style="display: grid; gap: 0.75rem;">
+                        ${[['5', 'That\'s totally me'], ['4', 'Mostly me'], ['3', 'Sometimes'], ['2', 'Not really'], ['1', 'Not me at all']].map(([val, label]) => `
+                            <button class="btn btn-secondary" style="text-align: left; padding: 1rem;" onclick="youthFsiAnswer(${val})">${label}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function youthFsiAnswer(val) {
+            toolData.answers.push(val);
+            toolData.currentIndex++;
+            renderYouthFsiQuestion();
+        }
+
+        function showYouthFsiResults() {
+            const stateScores = { exploring: 0, drifting: 0, pressured: 0, committed: 0, mismatched: 0 };
+            youthFsiQuestions.forEach((q, i) => {
+                stateScores[q.state] += toolData.answers[i];
+            });
+
+            const maxScore = 25;
+            const sorted = Object.entries(stateScores).sort((a, b) => b[1] - a[1]);
+            const primary = sorted[0];
+            const secondary = sorted[1];
+            const stateInfo = youthFluxStates[primary[0]];
+            const secondaryInfo = youthFluxStates[secondary[0]];
+
+            const content = document.getElementById('youthFsi-content');
+            content.innerHTML = `
+                <div class="state-card" style="border-color: ${stateInfo.color};">
+                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">${stateInfo.icon}</div>
+                    <div class="state-name" style="color: ${stateInfo.color};">${stateInfo.name}</div>
+                    <div class="state-confidence">${Math.round((primary[1] / maxScore) * 100)}% match</div>
+                    <div class="state-reasoning">${stateInfo.desc}</div>
+                </div>
+                <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <div style="color: #94a3b8; margin-bottom: 0.75rem;">Secondary state: <strong style="color: ${secondaryInfo.color};">${secondaryInfo.icon} ${secondaryInfo.name}</strong> (${Math.round((secondary[1] / maxScore) * 100)}%)</div>
+                </div>
+                <div class="bar-chart-container">
+                    ${sorted.map(([state, score]) => `
+                        <div class="bar-row">
+                            <div class="bar-label">${youthFluxStates[state].icon} ${youthFluxStates[state].name}</div>
+                            <div class="bar-background"><div class="bar-fill" style="width: ${(score / maxScore) * 100}%; background: ${youthFluxStates[state].color}"></div></div>
+                            <div class="bar-value">${Math.round((score / maxScore) * 100)}%</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="submitYouthFsi('${primary[0]}', ${Math.round((primary[1] / maxScore) * 100)})">Save Results</button>
+                    <button class="btn btn-secondary" onclick="goHome()">Back</button>
+                </div>
+            `;
+        }
+
+        function submitYouthFsi(state, confidence) {
+            addToHistory('Youth Flux State Assessment', { primaryState: state, confidence });
+            goHome();
+        }
+
+        // ============ YOUTH CAREER FAMILY FINDER ============
+        function initYouthCareer() {
+            showPage('youthCareer-page');
+            toolData = { step: 'energy', energyScores: {} };
+            renderYouthCareerStep();
+        }
+
+        function renderYouthCareerStep() {
+            const content = document.getElementById('youthCareer-content');
+
+            if (toolData.step === 'energy') {
+                const dimLabels = { N1: 'People Energy', N2: 'Problem-Solving', N3: 'Getting Things Done', N4: 'Getting Better at Things', N5: 'Helping Others', N6: 'Building & Creating', N7: 'Tackling Complex Ideas' };
+                content.innerHTML = `
+                    <div class="form-group">
+                        <div class="form-label">Rate how much each type of energy fits you (1-10):</div>
+                        <div class="dimension-inputs">
+                            ${Object.entries(dimLabels).map(([dim, label]) => `
+                                <div class="slider-row">
+                                    <div class="slider-label">${label}</div>
+                                    <input type="range" min="1" max="10" value="5" class="dimension-slider" id="yc-${dim}" oninput="document.getElementById('yc-${dim}-val').textContent = this.value">
+                                    <div class="bar-value" id="yc-${dim}-val">5</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="btn btn-primary" onclick="submitYouthCareerEnergy()">See My Career Families</button>
+                    </div>
+                `;
+            } else if (toolData.step === 'results') {
+                const familyScores = {};
+                Object.entries(careerFamilies).forEach(([key, fam]) => {
+                    let score = 0, total = 0;
+                    Object.entries(fam.weights).forEach(([dim, w]) => {
+                        score += (toolData.energyScores[dim] || 5) * w;
+                        total += 10 * w;
+                    });
+                    familyScores[key] = Math.round((score / total) * 100);
+                });
+
+                const sorted = Object.entries(familyScores).sort((a, b) => b[1] - a[1]);
+                const top = sorted[0];
+                const topFam = careerFamilies[top[0]];
+                const youthDescriptions = {
+                    builder: 'You love making things — code, crafts, structures, systems. You\'re happiest when you can point at something and say "I made that."',
+                    strategist: 'You see patterns others miss and love figuring out the best way to win. You\'re drawn to competition and big-picture thinking.',
+                    explorer: 'Curiosity drives you. You want to know how everything works and love diving into new topics, places, and ideas.',
+                    optimizer: 'You make things better. You can\'t help but notice inefficiencies and want to fix them until everything runs smoothly.',
+                    teacher: 'You light up when you help someone understand something. Sharing knowledge and watching others grow is your superpower.',
+                    connector: 'People are your thing. You bring groups together, build relationships, and make everyone feel included.',
+                    guardian: 'You care about fairness and doing things right. You protect what matters and make sure systems work for everyone.',
+                    healer: 'You feel deeply and care about others\' wellbeing. You\'re drawn to helping people through tough times.'
+                };
+
+                content.innerHTML = `
+                    <div class="family-card" style="border-color: ${topFam.color};">
+                        <div class="family-icon">${topFam.icon}</div>
+                        <div class="family-name">${topFam.name}</div>
+                        <div class="family-score">${top[1]}%</div>
+                        <div class="family-description">${youthDescriptions[top[0]]}</div>
+                    </div>
+                    <div class="bar-chart-container">
+                        <h3 style="color: #06b6d4; margin-bottom: 1.5rem;">All Families</h3>
+                        ${sorted.map(([key, score]) => `
+                            <div class="bar-row">
+                                <div class="bar-label">${careerFamilies[key].icon} ${careerFamilies[key].name}</div>
+                                <div class="bar-background"><div class="bar-fill" style="width: ${score}%; background: ${careerFamilies[key].color}"></div></div>
+                                <div class="bar-value">${score}%</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="submitYouthCareer('${top[0]}', ${top[1]})">Save Results</button>
+                        <button class="btn btn-secondary" onclick="goHome()">Back</button>
+                    </div>
+                `;
+            }
+        }
+
+        function submitYouthCareerEnergy() {
+            ['N1','N2','N3','N4','N5','N6','N7'].forEach(d => {
+                toolData.energyScores[d] = parseInt(document.getElementById('yc-' + d).value);
+            });
+            toolData.step = 'results';
+            renderYouthCareerStep();
+        }
+
+        function submitYouthCareer(family, score) {
+            addToHistory('Youth Career Family Assessment', { primaryFamily: family, score });
+            goHome();
+        }
+
+        // ============ DECISION DOMAIN ROUTER ============
+        const domainDefinitions = {
+            identity: { name: 'Identity', icon: '🪞', color: '#10b981', ages: '14-22', desc: 'You\'re in the process of discovering who you are, what energizes you, and what you care about.' },
+            direction: { name: 'Direction', icon: '🧭', color: '#06b6d4', ages: '17-30', desc: 'You know yourself but need to translate that self-knowledge into a concrete career or life path.' },
+            transition: { name: 'Transition', icon: '🔄', color: '#f59e0b', ages: '25-55', desc: 'You\'re evaluating whether to stay, fix, or leave your current path. Something needs to change.' },
+            optimization: { name: 'Optimization', icon: '📈', color: '#8b5cf6', ages: '30-55', desc: 'You\'re in a good-enough fit but need to close specific gaps to reach your next level.' },
+            legacy: { name: 'Legacy', icon: '🏛', color: '#ec4899', ages: '45-65', desc: 'You\'re thinking about lasting impact, knowledge transfer, and what you want to leave behind.' },
+        };
+
+        function initDomainRouter() {
+            showPage('domainRouter-page');
+            toolData = { step: 'age' };
+            renderDomainRouterStep();
+        }
+
+        function renderDomainRouterStep() {
+            const content = document.getElementById('domainRouter-content');
+
+            if (toolData.step === 'age') {
+                content.innerHTML = `
+                    <div class="form-group">
+                        <div class="form-label">How old are you?</div>
+                        <input type="number" min="14" max="80" value="25" id="dr-age" class="form-input" style="background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 1rem; border-radius: 8px; font-size: 1.2rem; width: 100%; margin-bottom: 1rem;">
+                        <button class="btn btn-primary" onclick="drSetAge()">Next</button>
+                    </div>
+                `;
+            } else if (toolData.step === 'context') {
+                content.innerHTML = `
+                    <div class="form-group">
+                        <div class="form-label">Which best describes where you are right now?</div>
+                        <div style="display: grid; gap: 0.75rem;">
+                            <button class="btn btn-secondary" style="text-align: left; padding: 1rem;" onclick="drSetContext('discovering')">🔍 Still figuring out who I am and what I like</button>
+                            <button class="btn btn-secondary" style="text-align: left; padding: 1rem;" onclick="drSetContext('choosing')">🛤 I know myself but need to pick a direction</button>
+                            <button class="btn btn-secondary" style="text-align: left; padding: 1rem;" onclick="drSetContext('evaluating')">⚖️ Wondering if I should stay or make a change</button>
+                            <button class="btn btn-secondary" style="text-align: left; padding: 1rem;" onclick="drSetContext('leveling')">🚀 On my path but need to close gaps and level up</button>
+                            <button class="btn btn-secondary" style="text-align: left; padding: 1rem;" onclick="drSetContext('reflecting')">🌅 Thinking about impact and what I leave behind</button>
+                        </div>
+                    </div>
+                `;
+            } else if (toolData.step === 'result') {
+                const domain = toolData.assignedDomain;
+                const info = domainDefinitions[domain];
+                const altDomains = toolData.alternates || [];
+
+                content.innerHTML = `
+                    <div class="state-card" style="border-color: ${info.color};">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;">${info.icon}</div>
+                        <div class="state-name" style="color: ${info.color};">${info.name} Domain</div>
+                        <div style="color: #94a3b8; margin-bottom: 1rem;">Typical ages: ${info.ages}</div>
+                        <div class="state-reasoning">${info.desc}</div>
+                    </div>
+                    ${altDomains.length > 0 ? `
+                        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                            <div style="color: #94a3b8; margin-bottom: 0.5rem;">Other domains you might explore:</div>
+                            ${altDomains.map(d => `<div style="color: ${domainDefinitions[d].color}; margin-top: 0.5rem;">${domainDefinitions[d].icon} ${domainDefinitions[d].name} (${domainDefinitions[d].ages})</div>`).join('')}
+                        </div>
+                    ` : ''}
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="submitDomainRouter('${domain}')">Save Results</button>
+                        <button class="btn btn-secondary" onclick="goHome()">Back</button>
+                    </div>
+                `;
+            }
+        }
+
+        function drSetAge() {
+            toolData.age = parseInt(document.getElementById('dr-age').value) || 25;
+            toolData.step = 'context';
+            renderDomainRouterStep();
+        }
+
+        function drSetContext(ctx) {
+            const age = toolData.age;
+            const contextMap = { discovering: 'identity', choosing: 'direction', evaluating: 'transition', leveling: 'optimization', reflecting: 'legacy' };
+            let primary = contextMap[ctx];
+
+            // Age-based override/validation
+            if (age < 17 && primary !== 'identity') primary = 'identity';
+            if (age < 25 && primary === 'legacy') primary = 'direction';
+            if (age > 55 && primary === 'identity') primary = 'legacy';
+
+            // Compute alternates
+            const alts = [];
+            if (age >= 14 && age <= 22 && primary !== 'identity') alts.push('identity');
+            if (age >= 17 && age <= 30 && primary !== 'direction') alts.push('direction');
+            if (age >= 25 && age <= 55 && primary !== 'transition') alts.push('transition');
+            if (age >= 30 && age <= 55 && primary !== 'optimization') alts.push('optimization');
+            if (age >= 45 && primary !== 'legacy') alts.push('legacy');
+
+            toolData.assignedDomain = primary;
+            toolData.alternates = alts.slice(0, 2);
+            toolData.step = 'result';
+            renderDomainRouterStep();
+        }
+
+        function submitDomainRouter(domain) {
+            addToHistory('Domain Router', { domain, age: toolData.age });
+            goHome();
+        }
+
+        // ============ DOMAIN OUTPUT VIEWER ============
+        function initDomainOutput() {
+            showPage('domainOutput-page');
+            toolData = { step: 'select' };
+            renderDomainOutputStep();
+        }
+
+        function renderDomainOutputStep() {
+            const content = document.getElementById('domainOutput-content');
+
+            if (toolData.step === 'select') {
+                content.innerHTML = `
+                    <div class="form-group">
+                        <div class="form-label">Select a domain to view its analysis framework:</div>
+                        <div style="display: grid; gap: 1rem;">
+                            ${Object.entries(domainDefinitions).map(([key, d]) => `
+                                <button class="btn btn-secondary" style="text-align: left; padding: 1.25rem; border-left: 4px solid ${d.color};" onclick="viewDomainOutput('${key}')">
+                                    ${d.icon} <strong>${d.name}</strong> — ${d.desc.substring(0, 60)}...
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (toolData.step === 'view') {
+                const domain = toolData.selectedDomain;
+                const info = domainDefinitions[domain];
+                const frameworks = {
+                    identity: [
+                        { title: 'Energy Map', desc: 'Maps your N1-N7 energy dimensions to discover what naturally energizes you vs. drains you.' },
+                        { title: 'Identity Clarity Score', desc: 'Measures how well-defined your self-knowledge is based on variance across dimensions.' },
+                        { title: 'Exploration Paths', desc: 'Suggests specific activities and experiences to build identity clarity.' },
+                    ],
+                    direction: [
+                        { title: 'Career Family Fit', desc: 'Ranks all 8 career families against your energy profile with fit percentages.' },
+                        { title: 'Gap Priorities', desc: 'Identifies skill, experience, and credential gaps using the 3-factor priority formula.' },
+                        { title: '3-Year Path Sequence', desc: 'Lays out concrete milestones for year 1, 2, and 3 toward your target career.' },
+                    ],
+                    transition: [
+                        { title: 'Fix vs Leave Analysis', desc: 'Multi-factor scoring: energy alignment, flux state, tenure, financial gaps, life events.' },
+                        { title: 'Transition Cost Model', desc: 'Estimates financial, emotional, and time costs of making a change.' },
+                        { title: 'Bridge Roles', desc: 'Identifies intermediate positions that reduce risk while moving toward fit.' },
+                    ],
+                    optimization: [
+                        { title: 'Skill Acceleration', desc: 'Prioritizes gaps by the formula: priority = (width × criticality) / closeability.' },
+                        { title: 'Leadership Readiness', desc: 'Composite score from E4+E5+P1+N1+C1 to assess management potential.' },
+                        { title: 'Network Strategy', desc: 'Identifies who you need in your network and how to reach them.' },
+                    ],
+                    legacy: [
+                        { title: 'Impact Assessment', desc: 'Triangulates N5+N1+N4 to determine your natural impact style.' },
+                        { title: 'Knowledge Transfer', desc: 'Framework for packaging your expertise for lasting value.' },
+                        { title: 'Second Act Paths', desc: 'Maps career family to legacy roles that match your energy profile.' },
+                    ],
+                };
+
+                content.innerHTML = `
+                    <div style="border-left: 4px solid ${info.color}; padding-left: 1.5rem; margin-bottom: 2rem;">
+                        <h2 style="color: ${info.color};">${info.icon} ${info.name} Domain</h2>
+                        <p style="color: #94a3b8; margin-top: 0.5rem;">${info.desc}</p>
+                    </div>
+                    <h3 style="color: #06b6d4; margin-bottom: 1rem;">Analysis Sections</h3>
+                    ${frameworks[domain].map(f => `
+                        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;">
+                            <div style="color: #e2e8f0; font-weight: 600; margin-bottom: 0.5rem;">${f.title}</div>
+                            <div style="color: #94a3b8; font-size: 0.95rem;">${f.desc}</div>
+                        </div>
+                    `).join('')}
+                    <div class="ok-card" style="margin-top: 1rem;">
+                        <strong>Note:</strong> Full domain outputs require completing assessment tools first. Use the Tool Sequencer to see which tools to complete.
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-secondary" onclick="toolData.step='select'; renderDomainOutputStep();">View Another Domain</button>
+                        <button class="btn btn-secondary" onclick="goHome()">Back</button>
+                    </div>
+                `;
+            }
+        }
+
+        function viewDomainOutput(domain) {
+            toolData.selectedDomain = domain;
+            toolData.step = 'view';
+            renderDomainOutputStep();
+        }
+
+        // ============ TOOL SEQUENCER ============
+        const toolCatalog = {
+            identity: [
+                { id: 'energy-sort', name: 'Energy Sort', time: 5, required: true, desc: 'Discover your N1-N7 energy dimensions' },
+                { id: 'baseline', name: 'Baseline Assessment', time: 5, required: true, desc: 'Establish your 28 sub-component scores' },
+                { id: 'career-family', name: 'Career Family Assessment', time: 10, required: false, desc: 'Find your primary career family' },
+                { id: 'flux-state', name: 'Flux State Detector', time: 2, required: false, desc: 'Identify your current transition state' },
+            ],
+            direction: [
+                { id: 'baseline', name: 'Baseline Assessment', time: 5, required: true, desc: 'Establish your 28 sub-component scores' },
+                { id: 'career-family', name: 'Career Family Assessment', time: 10, required: true, desc: 'Find your primary career family' },
+                { id: 'gap-analysis', name: 'Gap Analysis', time: 5, required: true, desc: 'Identify skill, experience, and credential gaps' },
+                { id: 'aspiration-audit', name: 'Aspiration Audit', time: 5, required: false, desc: 'Assess alignment between aspirations and reality' },
+            ],
+            transition: [
+                { id: 'baseline', name: 'Baseline Assessment', time: 5, required: true, desc: 'Current state across all dimensions' },
+                { id: 'flux-state', name: 'Flux State Detector', time: 2, required: true, desc: 'Your transition readiness state' },
+                { id: 'gap-analysis', name: 'Gap Analysis', time: 5, required: true, desc: 'Identify gaps that inform fix vs leave' },
+                { id: 'temperature', name: 'Temperature Check', time: 2, required: false, desc: 'Granular sub-component snapshot' },
+                { id: 'decision-capture', name: 'Decision Capture', time: 3, required: false, desc: 'Document your transition decision' },
+            ],
+            optimization: [
+                { id: 'baseline', name: 'Baseline Assessment', time: 5, required: true, desc: 'Full RDTE measurement' },
+                { id: 'gap-analysis', name: 'Gap Analysis', time: 5, required: true, desc: 'Prioritized gap list' },
+                { id: 'career-family', name: 'Career Family Assessment', time: 10, required: true, desc: 'Career family fit ranking' },
+                { id: 'peer-mirror', name: 'Peer Mirror', time: 5, required: false, desc: 'Compare against your cohort' },
+                { id: 'energy-pulse', name: 'Energy Pulse', time: 2, required: false, desc: 'Quick energy alignment check' },
+            ],
+            legacy: [
+                { id: 'baseline', name: 'Baseline Assessment', time: 5, required: true, desc: 'Full RDTE measurement' },
+                { id: 'career-family', name: 'Career Family Assessment', time: 10, required: true, desc: 'Career family for legacy path matching' },
+                { id: 'energy-sort', name: 'Energy Sort', time: 5, required: false, desc: 'Detailed energy profile for impact assessment' },
+                { id: 'aspiration-audit', name: 'Aspiration Audit', time: 5, required: false, desc: 'What matters most to you now' },
+            ],
+        };
+
+        function initToolSequence() {
+            showPage('toolSequence-page');
+            toolData = { step: 'select' };
+            renderToolSequenceStep();
+        }
+
+        function renderToolSequenceStep() {
+            const content = document.getElementById('toolSequence-content');
+
+            if (toolData.step === 'select') {
+                content.innerHTML = `
+                    <div class="form-group">
+                        <div class="form-label">Select your domain to see the recommended tool sequence:</div>
+                        <div style="display: grid; gap: 1rem;">
+                            ${Object.entries(domainDefinitions).map(([key, d]) => `
+                                <button class="btn btn-secondary" style="text-align: left; padding: 1.25rem; border-left: 4px solid ${d.color};" onclick="viewToolSequence('${key}')">
+                                    ${d.icon} <strong>${d.name}</strong>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (toolData.step === 'view') {
+                const domain = toolData.selectedDomain;
+                const info = domainDefinitions[domain];
+                const tools = toolCatalog[domain];
+                const completedIds = (history.filter(h => {
+                    const nameMap = { 'Baseline Assessment': 'baseline', 'Energy Sort': 'energy-sort', 'Youth Energy Sort': 'energy-sort', 'Career Family Assessment': 'career-family', 'Youth Career Family': 'career-family', 'Flux State Detector': 'flux-state', 'Youth Flux State': 'flux-state', 'Gap Analysis': 'gap-analysis', 'Aspiration Audit': 'aspiration-audit', 'Temperature Check': 'temperature', 'Decision Capture': 'decision-capture', 'Peer Mirror': 'peer-mirror', 'Energy Pulse': 'energy-pulse' };
+                    return nameMap[h.name] !== undefined;
+                }).map(h => {
+                    const nameMap = { 'Baseline Assessment': 'baseline', 'Energy Sort': 'energy-sort', 'Youth Energy Sort': 'energy-sort', 'Career Family Assessment': 'career-family', 'Youth Career Family': 'career-family', 'Flux State Detector': 'flux-state', 'Youth Flux State': 'flux-state', 'Gap Analysis': 'gap-analysis', 'Aspiration Audit': 'aspiration-audit', 'Temperature Check': 'temperature', 'Decision Capture': 'decision-capture', 'Peer Mirror': 'peer-mirror', 'Energy Pulse': 'energy-pulse' };
+                    return nameMap[h.name];
+                }));
+
+                const completed = tools.filter(t => completedIds.includes(t.id)).length;
+                const totalTime = tools.reduce((s, t) => s + t.time, 0);
+                const remainingTime = tools.filter(t => !completedIds.includes(t.id)).reduce((s, t) => s + t.time, 0);
+
+                content.innerHTML = `
+                    <div style="border-left: 4px solid ${info.color}; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                        <h2 style="color: ${info.color};">${info.icon} ${info.name} Tool Sequence</h2>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="big-stat"><div class="big-stat-value">${completed}/${tools.length}</div><div class="big-stat-label">Completed</div></div>
+                        <div class="big-stat"><div class="big-stat-value">${Math.round((completed / tools.length) * 100)}%</div><div class="big-stat-label">Progress</div></div>
+                        <div class="big-stat"><div class="big-stat-value">~${remainingTime}m</div><div class="big-stat-label">Remaining</div></div>
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        ${tools.map((t, i) => {
+                            const done = completedIds.includes(t.id);
+                            return `
+                                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: ${done ? 'rgba(16, 185, 129, 0.1)' : '#1e293b'}; border: 1px solid ${done ? '#10b981' : '#334155'}; border-radius: 8px; margin-bottom: 0.5rem;">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: ${done ? '#10b981' : '#334155'}; display: flex; align-items: center; justify-content: center; font-weight: bold; color: ${done ? 'white' : '#94a3b8'}; flex-shrink: 0;">${done ? '✓' : i + 1}</div>
+                                    <div style="flex: 1;">
+                                        <div style="color: ${done ? '#10b981' : '#e2e8f0'}; font-weight: 500;">${t.name} ${t.required ? '<span style="color: #ef4444; font-size: 0.8rem;">REQUIRED</span>' : '<span style="color: #64748b; font-size: 0.8rem;">optional</span>'}</div>
+                                        <div style="color: #94a3b8; font-size: 0.85rem;">${t.desc}</div>
+                                    </div>
+                                    <div style="color: #64748b; font-size: 0.85rem; flex-shrink: 0;">~${t.time}m</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-secondary" onclick="toolData.step='select'; renderToolSequenceStep();">View Another Domain</button>
+                        <button class="btn btn-secondary" onclick="goHome()">Back</button>
+                    </div>
+                `;
+            }
+        }
+
+        function viewToolSequence(domain) {
+            toolData.selectedDomain = domain;
+            toolData.step = 'view';
+            renderToolSequenceStep();
+        }
+
+        // ============ ADAPTIVE RDTE ASSESSMENT ============
+        const rdteQuestions = {
+            youth: [
+                { sub: 'E1', text: 'I know what I\'m good at', dim: 'Engagement' },
+                { sub: 'E2', text: 'I feel excited about my future', dim: 'Engagement' },
+                { sub: 'E3', text: 'I care about doing quality work', dim: 'Engagement' },
+                { sub: 'E4', text: 'I\'m good at working with others on projects', dim: 'Engagement' },
+                { sub: 'E5', text: 'I take charge when something needs to get done', dim: 'Engagement' },
+                { sub: 'P1', text: 'I can explain my ideas clearly to others', dim: 'Performance' },
+                { sub: 'P2', text: 'I adapt quickly when plans change', dim: 'Performance' },
+                { sub: 'P3', text: 'I make decisions I feel confident about', dim: 'Performance' },
+                { sub: 'P4', text: 'I manage my time well for school and activities', dim: 'Performance' },
+                { sub: 'P5', text: 'People notice when I put effort into my work', dim: 'Performance' },
+                { sub: 'R1', text: 'I have close friends or family I can rely on', dim: 'Resilience' },
+                { sub: 'R2', text: 'I can handle disappointment and bounce back', dim: 'Resilience' },
+                { sub: 'R3', text: 'I can stay calm even when things are stressful', dim: 'Resilience' },
+                { sub: 'R4', text: 'I usually see the bright side of tough situations', dim: 'Resilience' },
+                { sub: 'C1', text: 'I have a plan for what I want to do after school', dim: 'Clarity' },
+                { sub: 'C2', text: 'I know the steps I need to take toward my goals', dim: 'Clarity' },
+                { sub: 'C3', text: 'I understand what\'s happening in the field I\'m interested in', dim: 'Clarity' },
+            ],
+            adult: [
+                { sub: 'E1', text: 'I have a clear understanding of my core competencies', dim: 'Engagement' },
+                { sub: 'E2', text: 'I feel genuine enthusiasm about my career trajectory', dim: 'Engagement' },
+                { sub: 'E3', text: 'I hold myself to high professional standards', dim: 'Engagement' },
+                { sub: 'E4', text: 'I collaborate effectively across functions and teams', dim: 'Engagement' },
+                { sub: 'E5', text: 'I step into leadership roles when the situation calls for it', dim: 'Engagement' },
+                { sub: 'E6', text: 'My work environment supports my professional growth', dim: 'Engagement' },
+                { sub: 'E7', text: 'My personal values align with my organization\'s mission', dim: 'Engagement' },
+                { sub: 'P1', text: 'I communicate complex ideas clearly and persuasively', dim: 'Performance' },
+                { sub: 'P2', text: 'I adapt strategies effectively when circumstances change', dim: 'Performance' },
+                { sub: 'P3', text: 'I make well-informed decisions under uncertainty', dim: 'Performance' },
+                { sub: 'P4', text: 'I manage competing priorities without sacrificing quality', dim: 'Performance' },
+                { sub: 'P5', text: 'My contributions are recognized by peers and leadership', dim: 'Performance' },
+                { sub: 'P6', text: 'I leverage technology and AI tools effectively in my work', dim: 'Performance' },
+                { sub: 'R1', text: 'I have a strong professional and personal support network', dim: 'Resilience' },
+                { sub: 'R2', text: 'I recover quickly from professional setbacks', dim: 'Resilience' },
+                { sub: 'R3', text: 'I maintain composure and clarity during high-pressure situations', dim: 'Resilience' },
+                { sub: 'R4', text: 'I reframe challenges as opportunities for growth', dim: 'Resilience' },
+                { sub: 'R5', text: 'I maintain boundaries between work and personal life', dim: 'Resilience' },
+                { sub: 'R6', text: 'I have adequate financial stability for my current situation', dim: 'Resilience' },
+                { sub: 'C1', text: 'I have a clear 3-5 year career vision', dim: 'Clarity' },
+                { sub: 'C2', text: 'I understand the specific steps to reach my next career milestone', dim: 'Clarity' },
+                { sub: 'C3', text: 'I stay current with trends and disruptions in my field', dim: 'Clarity' },
+                { sub: 'C4', text: 'I have contingency plans for potential career disruptions', dim: 'Clarity' },
+                { sub: 'T1', text: 'I actively cultivate relationships across my industry', dim: 'Trajectory' },
+                { sub: 'T2', text: 'I invest in developing new skills relevant to my future goals', dim: 'Trajectory' },
+                { sub: 'T3', text: 'I have measurable career goals with clear timelines', dim: 'Trajectory' },
+                { sub: 'T4', text: 'I can identify emerging opportunities in my field before others', dim: 'Trajectory' },
+                { sub: 'T5', text: 'I regularly seek feedback and act on it to improve', dim: 'Trajectory' },
+            ],
+        };
+
+        function initRdteAdaptive() {
+            showPage('rdteAdaptive-page');
+            toolData = { step: 'ageSelect' };
+            renderRdteStep();
+        }
+
+        function renderRdteStep() {
+            const content = document.getElementById('rdteAdaptive-content');
+            const progress = document.getElementById('rdteAdaptive-progress');
+            const progressText = document.getElementById('rdteAdaptive-progress-text');
+
+            if (toolData.step === 'ageSelect') {
+                progress.style.width = '0%';
+                progressText.textContent = 'Select your age group';
+                content.innerHTML = `
+                    <div class="form-group">
+                        <div class="form-label">Select your age group for an adapted assessment:</div>
+                        <div class="age-button-grid">
+                            <button class="age-select-btn" onclick="rdteSetAge('youth')">🌱 Youth (14-17)</button>
+                            <button class="age-select-btn" onclick="rdteSetAge('emerging')">🌿 Emerging (18-24)</button>
+                            <button class="age-select-btn" onclick="rdteSetAge('early')">🌳 Early Career (25-34)</button>
+                            <button class="age-select-btn" onclick="rdteSetAge('mid')">🏔 Mid Career (35-49)</button>
+                            <button class="age-select-btn" onclick="rdteSetAge('senior')">🌅 Senior (50-65)</button>
+                        </div>
+                    </div>
+                `;
+            } else if (toolData.step === 'questions') {
+                const qs = toolData.questions;
+                const idx = toolData.currentIndex;
+
+                if (idx >= qs.length) {
+                    showRdteResults();
+                    return;
+                }
+
+                const q = qs[idx];
+                const pct = Math.round(((idx + 1) / qs.length) * 100);
+                progress.style.width = pct + '%';
+                progressText.textContent = `Question ${idx + 1} of ${qs.length} — ${q.dim}`;
+
+                content.innerHTML = `
+                    <div class="form-group">
+                        <div style="color: #6366f1; font-size: 0.85rem; margin-bottom: 0.5rem;">${q.sub} • ${q.dim}</div>
+                        <div class="form-label" style="font-size: 1.1rem; margin-bottom: 1.5rem;">${q.text}</div>
+                        <div style="display: grid; gap: 0.75rem;">
+                            ${[['10', 'Strongly Agree'], ['8', 'Agree'], ['6', 'Slightly Agree'], ['4', 'Slightly Disagree'], ['2', 'Disagree']].map(([val, label]) => `
+                                <button class="btn btn-secondary" style="text-align: left; padding: 1rem;" onclick="rdteAnswer(${val})">${label}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function rdteSetAge(group) {
+            toolData.ageGroup = group;
+            const isYouth = group === 'youth' || group === 'emerging';
+            toolData.questions = isYouth ? rdteQuestions.youth : rdteQuestions.adult;
+            toolData.answers = [];
+            toolData.currentIndex = 0;
+            toolData.step = 'questions';
+            renderRdteStep();
+        }
+
+        function rdteAnswer(val) {
+            toolData.answers.push(val);
+            toolData.currentIndex++;
+            renderRdteStep();
+        }
+
+        function showRdteResults() {
+            const qs = toolData.questions;
+            const answers = toolData.answers;
+
+            // Score by dimension
+            const dimScores = {};
+            const dimCounts = {};
+            const subScores = {};
+
+            qs.forEach((q, i) => {
+                const score = answers[i];
+                subScores[q.sub] = score;
+                if (!dimScores[q.dim]) { dimScores[q.dim] = 0; dimCounts[q.dim] = 0; }
+                dimScores[q.dim] += score;
+                dimCounts[q.dim]++;
+            });
+
+            const dimAverages = {};
+            Object.keys(dimScores).forEach(d => {
+                dimAverages[d] = Math.round(dimScores[d] / dimCounts[d]);
+            });
+
+            // Overall composite
+            const allScores = Object.values(dimAverages);
+            const composite = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
+
+            const dimColors = { Engagement: '#6366f1', Performance: '#06b6d4', Resilience: '#10b981', Clarity: '#f59e0b', Trajectory: '#ec4899' };
+
+            let compositeColor = '#ef4444';
+            if (composite >= 8) compositeColor = '#10b981';
+            else if (composite >= 6) compositeColor = '#06b6d4';
+            else if (composite >= 4) compositeColor = '#f59e0b';
+
+            const content = document.getElementById('rdteAdaptive-content');
+            content.innerHTML = `
+                <div class="hrv-composite-score" style="border-color: ${compositeColor};">
+                    <div class="hrv-score-big" style="color: ${compositeColor};">${composite}/10</div>
+                    <div class="hrv-score-label">Overall RDTE Score (${toolData.ageGroup})</div>
+                </div>
+                <div class="bar-chart-container">
+                    <h3 style="color: #06b6d4; margin-bottom: 1.5rem;">Dimension Scores</h3>
+                    ${Object.entries(dimAverages).map(([dim, avg]) => `
+                        <div class="bar-row">
+                            <div class="bar-label">${dim}</div>
+                            <div class="bar-background"><div class="bar-fill" style="width: ${avg * 10}%; background: ${dimColors[dim] || '#6366f1'}"></div></div>
+                            <div class="bar-value">${avg}/10</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="bar-chart-container">
+                    <h3 style="color: #06b6d4; margin-bottom: 1.5rem;">Sub-Component Scores</h3>
+                    ${qs.map((q, i) => `
+                        <div class="bar-row">
+                            <div class="bar-label" style="font-size: 0.8rem;">${q.sub}</div>
+                            <div class="bar-background"><div class="bar-fill" style="width: ${answers[i] * 10}%; background: ${dimColors[q.dim] || '#6366f1'}"></div></div>
+                            <div class="bar-value">${answers[i]}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                ${(() => {
+                    const low = qs.filter((q, i) => answers[i] <= 4).map(q => q.sub + ' (' + q.text.substring(0, 40) + '...)');
+                    if (low.length > 0) {
+                        return `<div class="warning-card"><strong>Areas for growth:</strong><br>${low.join('<br>')}</div>`;
+                    }
+                    return '<div class="ok-card"><strong>Strong across the board!</strong> No sub-components scored below 4.</div>';
+                })()}
+                <div class="button-group" style="margin-top: 1.5rem;">
+                    <button class="btn btn-primary" onclick="submitRdte(${composite})">Save Results</button>
+                    <button class="btn btn-secondary" onclick="goHome()">Back</button>
+                </div>
+            `;
+        }
+
+        function submitRdte(composite) {
+            addToHistory('Adaptive RDTE', { composite, ageGroup: toolData.ageGroup });
+            goHome();
+        }
+
+        function viewHistoryItem(i) { alert(`Item ${i}: ${history[i].name}\nData: ${JSON.stringify(history[i].data)}`); }
+
+        updateHistoryCount();
+    </script>
+</body>
+</html>

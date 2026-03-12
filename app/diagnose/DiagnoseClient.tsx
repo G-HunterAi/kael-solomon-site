@@ -176,7 +176,7 @@ export default function DiagnoseClient() {
                   </p>
                   {/* TODO: Replace href with hosted RDTE instance URL */}
                   <a
-                    href="#"
+                    href="https://rdte-two.vercel.app"
                     className="text-[14px] font-medium rounded-[2px] transition-all duration-150 ease-in-out cursor-pointer inline-flex items-center justify-center py-3 px-6 border-none hover:opacity-85 active:opacity-70 no-underline"
                     style={{
                       backgroundColor: "var(--color-hero-text)",
@@ -452,7 +452,7 @@ export default function DiagnoseClient() {
               Free. No account required. Your data stays in your browser.
             </p>
             <a
-              href="#"
+              href="https://rdte-two.vercel.app"
               onClick={(e) => {
                 e.preventDefault();
                 window.scrollTo({ top: 0, behavior: "smooth" });
