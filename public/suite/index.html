@@ -535,72 +535,64 @@
             .hrv-component-grid { grid-template-columns: 1fr; }
         }
 
-        /* GLOSSY PILL BUTTONS */
+        /* SUNO-STYLE BUTTONS */
         .btn {
-            padding: 0.7rem 1.75rem;
+            padding: 0.65rem 1.6rem;
             border: none;
             border-radius: 50px;
-            font-size: 0.92rem;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.18s ease;
             font-weight: 600;
             font-family: 'Space Grotesk', sans-serif;
             letter-spacing: 0.01em;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 50%;
-            background: rgba(255,255,255,0.08);
-            border-radius: 50px 50px 0 0;
-            pointer-events: none;
         }
         .btn-primary {
-            background: linear-gradient(160deg, #D4B57A 0%, #C8A96E 40%, #A8893E 100%);
+            background: linear-gradient(135deg, #E8B86D 0%, #C8963E 100%);
             color: #0A0A0B;
             font-weight: 700;
-            box-shadow: 0 4px 20px rgba(200,169,110,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+            box-shadow: 0 2px 16px rgba(200,150,62,0.4);
+            border: none;
         }
         .btn-primary:hover {
-            box-shadow: 0 6px 28px rgba(200,169,110,0.5), inset 0 1px 0 rgba(255,255,255,0.25);
-            transform: translateY(-2px);
-            background: linear-gradient(160deg, #DCC080 0%, #D4B578 40%, #B89348 100%);
+            background: linear-gradient(135deg, #F0C47A 0%, #D4A24A 100%);
+            box-shadow: 0 4px 24px rgba(200,150,62,0.55);
+            transform: translateY(-1px);
         }
         .btn-secondary {
-            background: linear-gradient(160deg, #2A2A2E 0%, #222226 100%);
+            background: transparent;
             color: var(--text-primary);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+            border: 1.5px solid rgba(255,255,255,0.2);
         }
         .btn-secondary:hover {
-            background: linear-gradient(160deg, #323236 0%, #2A2A2E 100%);
-            border-color: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.35);
         }
         .btn-add {
-            background: linear-gradient(160deg, rgba(50,215,75,0.2) 0%, rgba(50,215,75,0.1) 100%);
+            background: transparent;
             color: var(--success);
-            border: 1px solid rgba(50,215,75,0.3);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+            border: 1.5px solid rgba(50,215,75,0.35);
+            margin-top: 0.5rem;
+        }
+        .btn-add:hover {
+            background: rgba(50,215,75,0.08);
+            border-color: rgba(50,215,75,0.55);
         }
         .back-btn {
-            background: linear-gradient(160deg, #2A2A2E 0%, #1E1E22 100%);
+            background: transparent;
             color: var(--text-primary);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 0.45rem 1.1rem;
+            border: 1.5px solid rgba(255,255,255,0.18);
+            padding: 0.42rem 1rem;
             border-radius: 50px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.85rem;
+            transition: all 0.18s ease;
+            font-size: 0.84rem;
             font-weight: 600;
             font-family: 'Space Grotesk', sans-serif;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
         }
         .back-btn:hover {
-            background: linear-gradient(160deg, #323236 0%, #26262A 100%);
-            border-color: rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.3);
         }
         .history-badge {
             border-radius: 50px;
@@ -703,11 +695,14 @@
 
         /* EXPORT BUTTON */
         .export-btn {
-            background: linear-gradient(160deg, rgba(50,215,75,0.2) 0%, rgba(50,215,75,0.08) 100%);
+            background: transparent;
             color: var(--success);
-            border: 1px solid rgba(50,215,75,0.25);
+            border: 1.5px solid rgba(50,215,75,0.35);
             border-radius: 50px;
-            box-shadow: 0 4px 16px rgba(50,215,75,0.15);
+        }
+        .export-btn:hover {
+            background: rgba(50,215,75,0.08);
+            border-color: rgba(50,215,75,0.55);
         }
 
         </style>
