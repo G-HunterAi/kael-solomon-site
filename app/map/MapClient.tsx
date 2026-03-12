@@ -129,7 +129,7 @@ export default function MapClient() {
               marginBottom: 20,
               lineHeight: 1.6,
             }}>
-              Enter your email to access all 14 tools — free, no account required.
+              Enter your email to access all 24 tools — free, no account required.
             </p>
             <div style={{ display: "flex", gap: 10 }}>
               <input
