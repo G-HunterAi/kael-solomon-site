@@ -3,20 +3,20 @@
 import { useState } from "react";
 
 const TOOLS = [
-  { id: "baseline",       label: "Baseline Assessment",         time: "8 min",  category: "Core",       desc: "Map your eight foundational elements." },
-  { id: "daily-checkin",  label: "Daily Check-in",              time: "2 min",  category: "Core",       desc: "Where are you today." },
-  { id: "quick-checkin",  label: "Quick Pulse",                 time: "1 min",  category: "Core",       desc: "Three questions. Right now." },
-  { id: "energy",         label: "Energy Assessment",           time: "5 min",  category: "Signal",     desc: "Identify what activates and drains you." },
-  { id: "aspiration",     label: "Aspiration Audit",            time: "5 min",  category: "Signal",     desc: "What do you actually want." },
-  { id: "temperature",    label: "Temperature Check",           time: "2 min",  category: "Signal",     desc: "Twelve readings. One honest picture." },
-  { id: "career-family",  label: "Career Family",               time: "10 min", category: "Direction",  desc: "Find your natural professional terrain." },
-  { id: "flux-state",     label: "Flux State",                  time: "2 min",  category: "Direction",  desc: "Where you are in the transition cycle." },
-  { id: "gap-analysis",   label: "Gap Analysis",                time: "5 min",  category: "Direction",  desc: "The distance between here and there." },
-  { id: "decision-capture", label: "Decision Capture",          time: "5 min",  category: "Decision",   desc: "Structure the choice in front of you." },
-  { id: "domain-router",  label: "Decision Domain Router",      time: "3 min",  category: "Decision",   desc: "Route your decision to the right frame." },
-  { id: "peer-mirror",    label: "Peer Mirror",                 time: "5 min",  category: "Wellbeing",  desc: "How do you compare to your cohort." },
-  { id: "hrv-pipeline",   label: "HRV Pipeline",                time: "3 min",  category: "Wellbeing",  desc: "Self-report physiological balance." },
-  { id: "adaptive-rdte",  label: "Adaptive RDTE",               time: "15 min", category: "Deep",       desc: "The full reverse decision tree assessment." },
+  { id: "baseline-assessment",       label: "Baseline Assessment",         time: "8 min",  category: "Core",       desc: "Map your eight foundational elements." },
+  { id: "daily-checkin",             label: "Daily Check-in",              time: "2 min",  category: "Core",       desc: "Where are you today." },
+  { id: "quick-checkin",             label: "Quick Pulse",                 time: "1 min",  category: "Core",       desc: "Three questions. Right now." },
+  { id: "energy-assessment",         label: "Energy Assessment",           time: "5 min",  category: "Signal",     desc: "Identify what activates and drains you." },
+  { id: "aspiration-audit",          label: "Aspiration Audit",            time: "5 min",  category: "Signal",     desc: "What do you actually want." },
+  { id: "temperature-check",         label: "Temperature Check",           time: "2 min",  category: "Signal",     desc: "Twelve readings. One honest picture." },
+  { id: "career-family-assessment",  label: "Career Family",               time: "10 min", category: "Direction",  desc: "Find your natural professional terrain." },
+  { id: "flux-state-assessment",     label: "Flux State",                  time: "2 min",  category: "Direction",  desc: "Where you are in the transition cycle." },
+  { id: "gap-analysis",              label: "Gap Analysis",                time: "5 min",  category: "Direction",  desc: "The distance between here and there." },
+  { id: "decision-capture",          label: "Decision Capture",            time: "5 min",  category: "Decision",   desc: "Structure the choice in front of you." },
+  { id: "decision-domain-router",    label: "Decision Domain Router",      time: "3 min",  category: "Decision",   desc: "Route your decision to the right frame." },
+  { id: "peer-mirror",               label: "Peer Mirror",                 time: "5 min",  category: "Wellbeing",  desc: "How do you compare to your cohort." },
+  { id: "hrv-pipeline",              label: "HRV Pipeline",                time: "3 min",  category: "Wellbeing",  desc: "Self-report physiological balance." },
+  { id: "adaptive-rdte-assessment",  label: "Adaptive RDTE",               time: "15 min", category: "Deep",       desc: "The full reverse decision tree assessment." },
 ];
 
 const CATEGORIES = ["All", "Core", "Signal", "Direction", "Decision", "Wellbeing", "Deep"];
@@ -232,9 +232,7 @@ export default function MapClient() {
             {filtered.map(tool => (
               <a
                 key={tool.id}
-                href={tool.id === "adaptive-rdte" ? RDTE_URL : `#${tool.id}`}
-                target={tool.id === "adaptive-rdte" ? "_blank" : undefined}
-                rel={tool.id === "adaptive-rdte" ? "noopener noreferrer" : undefined}
+                href={`/map/${tool.id}`}
                 style={{
                   display: "block",
                   padding: "24px 24px 20px",

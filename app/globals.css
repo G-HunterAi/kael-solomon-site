@@ -96,3 +96,98 @@ body {
     transform: translateX(0);
   }
 }
+
+/* ── DIAGNOSTIC TOOL STYLES (Map of Me) ── */
+.card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.btn-primary {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(100,160,255,0.9), rgba(80,100,255,0.9));
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 12px 20px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  color: rgba(230,230,245,0.7);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: rgba(255,255,255,0.2);
+}
+
+/* Diagnostic tool text color utilities */
+.text-surface-900 { color: rgba(230,230,245,0.9); }
+.text-surface-700 { color: rgba(230,230,245,0.7); }
+.text-surface-600 { color: rgba(200,200,220,0.6); }
+.text-surface-500 { color: rgba(180,180,200,0.5); }
+.text-surface-400 { color: rgba(180,180,200,0.4); }
+.text-surface-300 { color: rgba(180,180,200,0.3); }
+
+.text-brand-600 { color: rgba(100,160,255,0.8); }
+.text-brand-700 { color: rgba(100,160,255,0.9); }
+
+.bg-brand-600 { background: linear-gradient(135deg, rgba(100,160,255,0.9), rgba(80,100,255,0.9)); }
+.bg-brand-500 { background: linear-gradient(135deg, rgba(100,160,255,0.8), rgba(80,100,255,0.8)); }
+.border-brand-600 { border-color: rgba(100,160,255,0.6); }
+.border-brand-500 { border-color: rgba(100,160,255,0.5); }
+
+.bg-surface-100 { background: rgba(255,255,255,0.06); }
+.bg-surface-50 { background: rgba(255,255,255,0.04); }
+.border-surface-200 { border-color: rgba(255,255,255,0.1); }
+.border-surface-300 { border-color: rgba(255,255,255,0.15); }
+.border-surface-100 { border-color: rgba(255,255,255,0.07); }
+
+/* Dot colors for elements */
+.dot-blue { background: rgba(100,160,255,0.8); }
+.dot-violet { background: rgba(160,120,255,0.8); }
+.dot-amber { background: rgba(255,200,80,0.8); }
+.dot-emerald { background: rgba(80,220,160,0.8); }
+
+/* Input styling for diagnostic tools */
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: rgba(230,230,245,0.9);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.input:focus {
+  border-color: rgba(100,160,255,0.4);
+}
+
+.input::placeholder {
+  color: rgba(180,180,200,0.3);
+}

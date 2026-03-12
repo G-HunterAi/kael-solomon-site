@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
-import { playfair, inter, jetbrainsMono } from "./fonts";
+import { playfair, inter, jetbrainsMono, geist } from "./fonts";
 import SkipNav from "@/components/layout/SkipNav";
 import Nav from "@/components/layout/Nav";
 import MainContent from "@/components/layout/MainContent";
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${playfair.variable} ${inter.variable} ${jetbrainsMono.variable} ${geist.variable}`}
     >
       <body>
         <SkipNav />
