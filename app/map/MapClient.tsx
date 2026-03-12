@@ -17,6 +17,11 @@ const TOOLS = [
   { id: "peer-mirror",               label: "Peer Mirror",                 time: "5 min",  category: "Wellbeing",  desc: "How do you compare to your cohort." },
   { id: "hrv-pipeline",              label: "HRV Pipeline",                time: "3 min",  category: "Wellbeing",  desc: "Self-report physiological balance." },
   { id: "adaptive-rdte-assessment",  label: "Adaptive RDTE",               time: "15 min", category: "Deep",       desc: "The full reverse decision tree assessment." },
+  { id: "ai-displacement-monitor",  label: "AI Displacement Monitor",     time: "3 min",  category: "Signal",     desc: "Assess your career resilience to AI." },
+  { id: "decision-profile",         label: "Decision Profile",            time: "5 min",  category: "Decision",   desc: "Understand your decision-making style." },
+  { id: "experiment-tracker",       label: "Experiment Tracker",          time: "5 min",  category: "Direction",  desc: "Log micro-experiments to test career hypotheses." },
+  { id: "fix-vs-leave",             label: "Fix vs Leave",                time: "5 min",  category: "Decision",   desc: "Should you fix or should you go." },
+  { id: "parent-profile",           label: "Parent Profile",              time: "10 min", category: "Deep",       desc: "Understand your energy patterns as a parent." },
 ];
 
 const CATEGORIES = ["All", "Core", "Signal", "Direction", "Decision", "Wellbeing", "Deep"];
