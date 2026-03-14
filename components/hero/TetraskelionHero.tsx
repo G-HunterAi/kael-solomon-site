@@ -49,7 +49,7 @@ export default function TetraskelionHero() {
           bottom: "14%",
           fontFamily: "var(--font-playfair)",
           color: "var(--color-hero-text)",
-          fontSize: "clamp(22px, 3.5vw, 58px)",
+          fontSize: "clamp(16px, 2.2vw, 38px)",
           letterSpacing: "-0.02em",
           lineHeight: 1.3,
           textShadow: "0 2px 40px rgba(0, 0, 0, 0.8)",
