@@ -46,7 +46,7 @@ export default function TetraskelionHero() {
       <h1
         className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none select-none w-[90%] max-w-[900px]"
         style={{
-          bottom: "7%",
+          bottom: "11%",
           fontFamily: "var(--font-playfair)",
           color: "var(--color-hero-text)",
           fontSize: "clamp(16px, 2vw, 32px)",
