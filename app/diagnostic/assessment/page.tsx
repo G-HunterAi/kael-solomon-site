@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { nanoid } from 'nanoid'
 import { AssessmentProvider, useAssessment } from '@/components/diagnostic/AssessmentContext'
@@ -29,6 +29,9 @@ function AssessmentFlow() {
     startFresh,
   } = useAssessment()
 
+  // Stable ref for the result ID — generated once when submission screen appears
+  const resultIdRef = useRef<string | null>(null)
+
   // Start question timer when a question screen appears
   useEffect(() => {
     if (currentScreen.type === 'question') {
@@ -36,15 +39,14 @@ function AssessmentFlow() {
     }
   }, [currentScreen, dispatch])
 
-  const handleNext = useCallback(() => {
-    dispatch({ type: 'NEXT_SCREEN' })
-  }, [dispatch])
+  // CRITICAL FIX: Save result to localStorage the moment the submission screen appears.
+  // This avoids stale-closure bugs where handleComplete (a useCallback) might reference
+  // old state.responses if the ConstellationReveal animation captures it before the last
+  // state update settles.
+  useEffect(() => {
+    if (currentScreen.type !== 'submission') return
+    if (resultIdRef.current) return // already saved
 
-  const handlePrev = useCallback(() => {
-    dispatch({ type: 'PREV_SCREEN' })
-  }, [dispatch])
-
-  const handleComplete = useCallback(() => {
     const scores = calculateScores(state.responses)
     const sectionScores = calculateSectionScores(scores)
     const outliers = detectOutliers(scores)
@@ -53,13 +55,15 @@ function AssessmentFlow() {
     const archetype = assignArchetype(scores)
     const narrative = generateNarrative(scores, sectionScores.overall, archetype.primary, gaps)
 
-    // Mark outliers in scores
+    // Mark outliers
     for (const outlier of outliers) {
       const s = scores[outlier.dimension]
       if (s) s.isOutlier = true
     }
 
     const resultId = nanoid(8)
+    resultIdRef.current = resultId
+
     const now = new Date().toISOString()
     const startTime = new Date(state.startedAt).getTime()
     const timeTaken = Math.round((Date.now() - startTime) / 1000)
@@ -85,17 +89,34 @@ function AssessmentFlow() {
       validity,
     }
 
-    // Save to localStorage
+    // Save immediately — synchronous, no race condition possible
     localStorage.setItem(`acuity_result_${resultId}`, JSON.stringify(result))
     localStorage.setItem('acuity_latest_result_id', resultId)
     localStorage.removeItem('acuity_in_progress')
 
-    // Increment completed counter
     const completedCount = parseInt(localStorage.getItem('acuity_sessions_completed') || '0', 10)
     localStorage.setItem('acuity_sessions_completed', String(completedCount + 1))
+  }, [currentScreen.type, state.responses, state.startedAt])
 
-    router.push(`/diagnostic/results/${resultId}`)
-  }, [state.responses, state.startedAt, router])
+  const handleNext = useCallback(() => {
+    dispatch({ type: 'NEXT_SCREEN' })
+  }, [dispatch])
+
+  const handlePrev = useCallback(() => {
+    dispatch({ type: 'PREV_SCREEN' })
+  }, [dispatch])
+
+  // After animation completes — navigate to the already-saved result
+  const handleComplete = useCallback(() => {
+    const id = resultIdRef.current
+    if (id) {
+      router.push(`/diagnostic/results/${id}`)
+    } else {
+      // Fallback: try latest result id
+      const latest = localStorage.getItem('acuity_latest_result_id')
+      if (latest) router.push(`/diagnostic/results/${latest}`)
+    }
+  }, [router])
 
   // Show resume modal if there's an in-progress session
   if (hasInProgressSession) {
@@ -129,7 +150,6 @@ function AssessmentFlow() {
         </p>
         <button
           onClick={() => {
-            // Increment started counter
             const startedCount = parseInt(
               localStorage.getItem('acuity_sessions_started') || '0',
               10
