@@ -49,7 +49,8 @@ export default function TetraskelionHero() {
           bottom: "7%",
           fontFamily: "var(--font-playfair)",
           color: "var(--color-hero-text)",
-          fontSize: "clamp(16px, 2.2vw, 38px)",
+          fontSize: "clamp(13px, 1.6vw, 26px)",
+          whiteSpace: "nowrap",
           letterSpacing: "-0.02em",
           lineHeight: 1.3,
           textShadow: "0 2px 40px rgba(0, 0, 0, 0.8)",
@@ -57,9 +58,7 @@ export default function TetraskelionHero() {
           transition: "opacity 2.5s ease",
         }}
       >
-        Genius isn&apos;t what you were born with.
-        <br />
-        It&apos;s what you build.
+        Genius isn&apos;t what you were born with. It&apos;s what you build.
       </h1>
 
       {/* Scroll indicator — fades in with headline */}
