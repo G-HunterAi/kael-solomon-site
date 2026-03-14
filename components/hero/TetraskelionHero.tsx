@@ -57,9 +57,9 @@ export default function TetraskelionHero() {
           transition: "opacity 2.5s ease",
         }}
       >
-        What survives the bottom
+        Genius isn&apos;t what you were born with.
         <br />
-        tends to be true.
+        It&apos;s what you build.
       </h1>
 
       {/* Scroll indicator — fades in with headline */}
